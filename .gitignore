@@ -1,0 +1,8 @@
+# Terraform
+.terraform
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+.env
+id_rsa
+config.js
