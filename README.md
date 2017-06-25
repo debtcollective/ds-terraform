@@ -48,5 +48,5 @@ ssh -N -L 9998:<rds_address>:5432 ubuntu@<instance-ip> -p 12345
 Then connect to the database using the tunnel
 
 ```bash
-psql -h localhost -p 9998 -U <user> -W <password>
+psql -h localhost -p 9998 -d debtcollective_prod -U debtcollective < backup.sql
 ```

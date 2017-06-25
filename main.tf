@@ -120,7 +120,7 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
   }
 
   filter {
@@ -152,6 +152,11 @@ data "template_file" "knexfile" {
   }
 }
 
+resource "aws_eip" "web" {
+  instance = "${aws_instance.web.id}"
+  vpc      = true
+}
+
 resource "aws_instance" "web" {
   ami           = "${data.aws_ami.ubuntu.id}"
   instance_type = "${var.web_instance_type}"
@@ -159,6 +164,12 @@ resource "aws_instance" "web" {
 
   subnet_id              = "${element(module.vpc.public_subnet_ids, 0)}"
   vpc_security_group_ids = ["${module.vpc.ec2_security_group_id}"]
+
+  root_block_device {
+    volume_size           = 10
+    volume_type           = "gp2"
+    delete_on_termination = false
+  }
 
   tags {
     Name        = "web-${var.environment}"
@@ -207,6 +218,7 @@ resource "aws_instance" "web" {
       "echo \"deb https://dl.yarnpkg.com/debian/ stable main\" | sudo tee /etc/apt/sources.list.d/yarn.list",
       "sudo apt-get -y update",
       "sudo apt-get -y install git-core build-essential tcl redis-server libssl-dev nodejs yarn nginx",
+      "sudo apt-get -y install graphicsmagick python-minimal",
       "sudo npm install pm2@latest -g",
     ]
 
@@ -257,8 +269,19 @@ resource "aws_instance" "web" {
   }
 
   provisioner "file" {
-    source      = "./files/nginx.conf"
+    source      = "./files/sites-available.conf"
     destination = "/etc/nginx/sites-available/default"
+
+    connection {
+      port        = "12345"
+      timeout     = "1m"
+      private_key = "${file("~/.ssh/id_rsa")}"
+    }
+  }
+
+  provisioner "file" {
+    source      = "./files/nginx.conf"
+    destination = "/etc/nginx/nginx.conf"
 
     connection {
       port        = "12345"
@@ -288,26 +311,26 @@ resource "aws_elb_attachment" "web-elb-attachment" {
 
 // Route 53
 data "aws_route53_zone" "primary" {
-  name = "debtcollective.org"
+  name = "debtcollective.org."
 }
 
-#resource "aws_route53_record" "www" {
-#zone_id = "${aws_route53_zone.primary.zone_id}"
-#name    = "debtcollective.org"
-#type    = "A"
+resource "aws_route53_record" "www" {
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = "debtcollective.org"
+  type    = "A"
 
-#alias {
-#name                   = "${aws_elb.web.dns_name}"
-#zone_id                = "${aws_elb.web.zone_id}"
-#evaluate_target_health = true
-#}
-#}
+  alias {
+    name                   = "${aws_elb.web.dns_name}"
+    zone_id                = "${aws_elb.web.zone_id}"
+    evaluate_target_health = false
+  }
+}
 
 /*
  * Outputs
  */
 output "ec2_ip" {
-  value = "${aws_instance.web.public_ip}"
+  value = "${aws_eip.web.public_ip}"
 }
 
 output "elb_url" {

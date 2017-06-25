@@ -19,3 +19,11 @@ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbrxG7a8/A8MITx1oYS7SBMgAn3zr/F5a5Wy
 # Know Hosts
 ssh-keyscan -H 'gitlab.com' >> $HOME/.ssh/known_hosts
 ssh-keyscan -H 'github.com' >> $HOME/.ssh/known_hosts
+
+# EBS Device
+sudo mkfs -t ext4 /dev/xvdg
+sudo mkdir -p /data
+sudo mount /dev/xvdg /data
+sudo echo "/dev/xvdg       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
+sudo mount -a
+chmod 777 /data
