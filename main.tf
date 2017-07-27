@@ -165,6 +165,10 @@ resource "aws_instance" "web" {
   subnet_id              = "${element(module.vpc.public_subnet_ids, 0)}"
   vpc_security_group_ids = ["${module.vpc.ec2_security_group_id}"]
 
+  lifecycle {
+    ignore_changes = ["user_data"]
+  }
+
   root_block_device {
     volume_size           = 10
     volume_type           = "gp2"

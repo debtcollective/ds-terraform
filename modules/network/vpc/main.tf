@@ -238,6 +238,20 @@ resource "aws_security_group" "ec2" {
     cidr_blocks = ["149.56.84.50/32"]
   }
 
+  ingress {
+    from_port   = 5666
+    to_port     = 5666
+    protocol    = "udp"
+    cidr_blocks = ["192.99.99.97/32"]
+  }
+
+  ingress {
+    from_port   = 161
+    to_port     = 161
+    protocol    = "udp"
+    cidr_blocks = ["149.56.84.50/32"]
+  }
+
   # outbound internet access
   egress {
     from_port   = 0
