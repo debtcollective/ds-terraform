@@ -229,16 +229,16 @@ resource "aws_instance" "web" {
     }
   }
 
-  #Security Monitoring Software and Dependencies 
+  #Security Monitoring Software and Dependencies
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get install nagios-nrpe-server libnagios-plugin-perl nagios-plugins libsys-statistics-linux-perl -y",
       "sudo sed -i -e 's/allowed_hosts=127.0.0.1/allowed_hosts=127.0.0.1,192.99.99.97/' /etc/nagios/nrpe.cfg",
-      "sudo echo "command[check_users]=/usr/lib64/nagios/plugins/check_users -w 1 -c 2",
-      "command[check_load]=/usr/lib64/nagios/plugins/check_load -w 5,5,5 -c 10,10,10",
-      "command[check_hdhome]=/usr/lib64/nagios/plugins/check_disk -w 40% -c 30%",
-      "command[check_procs]=/usr/lib64/nagios/plugins/check_procs -w 150 -c 200",
-      "command[check_uptime]=/usr/lib64/nagios/plugins/check_uptime" >> /etc/nagios/nrpe.cfg",
+      "sudo echo 'command[check_users]=/usr/lib64/nagios/plugins/check_users -w 1 -c 2',
+      'command[check_load]=/usr/lib64/nagios/plugins/check_load -w 5,5,5 -c 10,10,10',
+      'command[check_hdhome]=/usr/lib64/nagios/plugins/check_disk -w 40% -c 30%',
+      'command[check_procs]=/usr/lib64/nagios/plugins/check_procs -w 150 -c 200',
+      'command[check_uptime]=/usr/lib64/nagios/plugins/check_uptime\' >> /etc/nagios/nrpe.cfg",
       "sudo /etc/init.d/nagios-nrpe-server start",
       "sudo update-rc.d nagios-nrpe-server defaults",
       "sudo apt install snmpd -y",
@@ -250,7 +250,7 @@ resource "aws_instance" "web" {
       "sudo iptables -I OUTPUT -p tcp -d  149.56.84.50 -j ACCEPT",
       "sudo iptables -I INPUT -p udp -m udp --dport 161 -j ACCEPT",
       "sudo iptables -I INPUT -p udp -m udp --dport 162 -j ACCEPT",
-      "sudo iptables-save ",
+      "sudo iptables-save",
       "sudo service snmpd restart"
     ]
 
