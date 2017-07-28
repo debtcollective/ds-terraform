@@ -3,14 +3,6 @@
  */
 provider "aws" {}
 
-terraform {
-  backend "s3" {
-    bucket = "debtcollective-terraform"
-    region = "us-west-2"
-    key    = "terraform.tfstate"
-  }
-}
-
 /*
  * Variables
  */
@@ -26,6 +18,19 @@ variable "db_password" {}
 
 variable "web_instance_type" {
   default = "t2.micro"
+}
+
+/*
+ * Remote State
+ */
+terraform {
+  backend "s3" {
+    bucket = "debtcollective-terraform"
+    region = "us-west-2"
+
+    // This is the state key, please make sure this namespace we are using matches the environment file in line 10
+    key = "production/terraform.tfstate"
+  }
 }
 
 /*

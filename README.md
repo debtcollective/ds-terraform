@@ -13,11 +13,9 @@ brew install terraform
 
 Then follow these steps to init your environment
 
-1. `cp env.sample .env` and replace variables
+1. `cp env.sample .env` and replace variables with valid AWS credentials with permissions we need to create all the infrastructure
 2. `source .env`
 3. `make init`
-
-You need to have valid and with the permissions we need, AWS credentials before running step 3.
 
 ## Usage
 
@@ -34,6 +32,10 @@ If more than one person is modifying these files, you can make sure you
 have the latest `terraform.tfvars` file by running `make tfvars-pull`.
 This command will override your local `terraform.tfvars` file, and since
 is not commited to git, you will lose your changes (if any)
+
+### Environments
+
+Each environment has 
 
 ## How-to
 

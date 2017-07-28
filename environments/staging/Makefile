@@ -1,4 +1,4 @@
-ENVIRONMENT=production
+ENVIRONMENT=staging
 REGION=us-west-2
 BUCKET=debtcollective-terraform
 
@@ -19,15 +19,18 @@ tfvars-pull:
 update: ## Gets any module updates
 	@terraform get -update=true
 
-apply: update
+apply: print_current_env update
 	@terraform apply -input=false -refresh=true
 	@aws s3 cp terraform.tfvars s3://$(BUCKET)/$(ENVIRONMENT)/terraform.tfvars
 
-plan: update
+plan: print_current_env update
 	@terraform plan -input=false -refresh=true -module-depth=-1
 
-output:
+output: print_current_env
 	@terraform output
 
-destroy: remote-pull update
+destroy: print_current_env remote-pull update
 	@terraform destroy -input=false -refresh=true
+
+print_current_env:
+	@echo "\033[1mYou current environment is $(ENVIRONMENT)\033[0m \n"
