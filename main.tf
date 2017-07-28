@@ -269,7 +269,7 @@ resource "aws_instance" "web" {
     inline = [
       "mkdir -p /home/ubuntu/apps/tdc/source",
       "mkdir -p /home/ubuntu/apps/tdc/shared",
-      "mkdir -p /home/ubuntu/apps/tdc/shared/uploads/production",
+      "mkdir -p /home/ubuntu/apps/tdc/shared/uploads/${var.environment}",
       "ssh-keyscan -H 'gitlab.com' >> $HOME/.ssh/known_hosts",
       "ssh-keyscan -H 'github.com' >> $HOME/.ssh/known_hosts",
     ]
