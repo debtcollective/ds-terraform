@@ -1,5 +1,5 @@
 module.exports = {
-  production: {
+  staging: {
     client: 'postgresql',
     connection: "${database_url}",
     pool: {
