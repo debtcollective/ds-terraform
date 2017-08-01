@@ -227,7 +227,7 @@ resource "aws_instance" "web" {
       "echo \"deb https://dl.yarnpkg.com/debian/ stable main\" | sudo tee /etc/apt/sources.list.d/yarn.list",
       "sudo apt-get -y update",
       "sudo apt-get -y install git-core build-essential tcl redis-server libssl-dev nodejs yarn nginx",
-      "sudo apt-get -y install graphicsmagick python-minimal",
+      "sudo apt-get -y install graphicsmagick imagemagick python-minimal",
       "sudo npm install pm2@latest -g",
     ]
 

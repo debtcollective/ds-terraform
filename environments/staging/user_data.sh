@@ -26,3 +26,6 @@ sudo mount /dev/xvdg /data
 sudo echo "/dev/xvdg       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
 sudo mount -a
 chmod 777 /data
+
+# Set NODE_ENV
+echo "export NODE_ENV=staging" >> ~/.bashrc
