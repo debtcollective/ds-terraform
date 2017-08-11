@@ -367,6 +367,36 @@ resource "aws_route53_record" "www" {
   }
 }
 
+// ECS instance_profile and iam_role
+module "ecs_role" {
+  source = "./modules/utils/ecs_role"
+}
+
+// key_pair for Metabase cluster
+resource "aws_key_pair" "metabase" {
+  key_name   = "metabase-tdc"
+  public_key = ""
+}
+
+// Creates Metabase ECS
+module "metabase" {
+  source      = "github.com/hashlabs/angostura//modules/aws/compute/services/metabase"
+  environment = "${var.environment}"
+
+  db_username = "${var.db_username}"
+  db_password = "${var.db_password}"
+  db_host     = "${aws_db_instance.postgres.address}"
+  db_port     = "${aws_db_instance.postgres.port}"
+  db_name     = "metabase"
+
+  key_name                = "${aws_key_pair.metabase.key_name}"
+  iam_instance_profile_id = "${module.ecs_role.instance_profile_id}"
+  subnet_ids              = ["${module.vpc.public_subnet_ids}"]
+  security_groups         = ["${module.vpc.ec2_security_group_id}"]
+  asg_min_size            = 1
+  asg_max_size            = 1
+}
+
 /*
  * Outputs
  */
