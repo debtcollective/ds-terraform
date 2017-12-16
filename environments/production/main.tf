@@ -16,6 +16,18 @@ variable "db_username" {
 
 variable "db_password" {}
 
+variable "aws_bucket" {
+  default = "debtcollective-deployed"
+}
+
+variable "aws_bucket_region" {
+  default = "us-east-2"
+}
+
+variable "aws_access_key_id" {}
+
+variable "aws_secret_access_key" {}
+
 variable "web_instance_type" {
   default = "t2.micro"
 }
@@ -146,6 +158,10 @@ data "template_file" "env_vars" {
   vars {
     environment  = "${var.environment}"
     database_url = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/debtcollective_prod"
+    aws_bucket = "${var.aws_bucket}"
+    aws_region = "${var.aws_region}"
+    aws_secret_access_key = "${var.aws_secret_access_key}"
+    aws_access_key_id = "${var.aws_access_key_id}"
   }
 }
 
@@ -222,7 +238,7 @@ resource "aws_instance" "web" {
   # Installing dependencies
   provisioner "remote-exec" {
     inline = [
-      "curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -",
+      "curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -",
       "curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -",
       "echo \"deb https://dl.yarnpkg.com/debian/ stable main\" | sudo tee /etc/apt/sources.list.d/yarn.list",
       "sudo apt-get -y update",
