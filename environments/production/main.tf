@@ -86,9 +86,9 @@ resource "aws_db_instance" "postgres" {
   skip_final_snapshot = false
 
   tags {
-    Name        = "postgres-${var.environment}"
-    Class       = "terraform"
+    Name        = "discourse-database-${var.environment}"
     Environment = "${var.environment}"
+    Terraform   = true
   }
 }
 
@@ -156,12 +156,12 @@ data "template_file" "env_vars" {
   template = "${file("${path.module}/env_vars.sh")}"
 
   vars {
-    environment  = "${var.environment}"
-    database_url = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/debtcollective_prod"
-    aws_bucket = "${var.aws_bucket}"
-    aws_region = "${var.aws_region}"
+    environment           = "${var.environment}"
+    database_url          = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/debtcollective_prod"
+    aws_bucket            = "${var.aws_bucket}"
+    aws_region            = "${var.aws_region}"
     aws_secret_access_key = "${var.aws_secret_access_key}"
-    aws_access_key_id = "${var.aws_access_key_id}"
+    aws_access_key_id     = "${var.aws_access_key_id}"
   }
 }
 

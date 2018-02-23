@@ -7,3 +7,4 @@ terraform.*.tfvars
 .env
 id_rsa
 config.js
+.DS_Store

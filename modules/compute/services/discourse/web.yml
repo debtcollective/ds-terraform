@@ -1,0 +1,44 @@
+templates:
+  - "templates/redis.template.yml"
+  - "templates/web.template.yml"
+  - "templates/web.ratelimited.template.yml"
+  - "templates/web.ssl.template.yml"
+  - "templates/web.letsencrypt.ssl.template.yml"
+
+expose:
+  - "80:80"
+  - "443:443"
+
+env:
+  LANG: en_US.UTF-8
+  DISCOURSE_SMTP_ADDRESS: "${discourse_smtp_address}"
+  DISCOURSE_SMTP_PORT: "${discourse_smtp_port}"
+  DISCOURSE_SMTP_USER_NAME: "${discourse_smtp_username}"
+  DISCOURSE_SMTP_PASSWORD: "${discourse_smtp_password}"
+  DISCOURSE_SMTP_AUTHENTICATION: "${discourse_smtp_authentication}"
+  DISCOURSE_DEVELOPER_EMAILS: "${discourse_developer_emails}"
+  DISCOURSE_DB_HOST: "${discourse_db_host}"
+  DISCOURSE_DB_NAME: "${discourse_db_name}"
+  DISCOURSE_DB_PASSWORD: "${discourse_db_password}"
+  DISCOURSE_DB_USERNAME: "${discourse_db_username}"
+  DISCOURSE_DB_PORT: "${discourse_db_port}"
+  DISCOURSE_HOSTNAME: "${discourse_hostname}"
+  LETSENCRYPT_ACCOUNT_EMAIL: "${discourse_letsencrypt_account_email}"
+
+volumes:
+  - volume:
+      host: /opt/discourse/shared/web
+      guest: /shared
+  - volume:
+      host: /opt/discourse/shared/web/log/var-log
+      guest: /var/log
+
+hooks:
+  after_code:
+    - exec:
+        cd: $home/plugins
+        cmd:
+          - mkdir -p plugins
+          - git clone https://github.com/discourse/docker_manager.git
+          - git clone https://github.com/angusmcleod/discourse-events.git
+          - git clone https://github.com/angusmcleod/discourse-locations.git
