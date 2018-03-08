@@ -6,7 +6,7 @@
  ** 1 Internet gateway
  ** 2 Public subnets (one in each availability zone)
  ** 2 Private subnets (one in each availability zone)
- ** 3 Security groups (elb, rds, ec2)
+ ** 4 Security groups (elb, rds, ec2, redis)
  ** VPC Subnet Group
  *
  *## Usage:
@@ -31,9 +31,7 @@ variable "environment" {
 /*
  * Resources
  */
-data "aws_region" "current" {
-  current = true
-}
+data "aws_region" "current" {}
 
 resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
@@ -196,6 +194,13 @@ resource "aws_security_group" "ec2" {
   }
 
   ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -268,15 +273,30 @@ resource "aws_security_group" "rds" {
   vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
-    from_port       = 22
-    to_port         = 22
+    from_port       = 5432
+    to_port         = 5432
     protocol        = "tcp"
     security_groups = ["${aws_security_group.ec2.id}"]
   }
 
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Create a security group for the redis cluster
+resource "aws_security_group" "redis" {
+  name        = "redis_security_group_${var.environment}"
+  description = "security group for redis"
+  vpc_id      = "${aws_vpc.default.id}"
+
   ingress {
-    from_port       = 5432
-    to_port         = 5432
+    from_port       = 6379
+    to_port         = 6379
     protocol        = "tcp"
     security_groups = ["${aws_security_group.ec2.id}"]
   }
@@ -312,6 +332,11 @@ output "elb_security_group_id" {
 // RDS Security group ID
 output "rds_security_group_id" {
   value = "${aws_security_group.rds.id}"
+}
+
+// Redis Security group ID
+output "redis_security_group_id" {
+  value = "${aws_security_group.redis.id}"
 }
 
 // VPC Public subnet IDs
