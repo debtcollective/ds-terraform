@@ -29,7 +29,8 @@ variable "tools_smtp_user" {}
 variable "tools_gmaps_api_key" {}
 
 variable "tools_cookie_name" {
-  default = "_dispute_tools__"
+  description = "Will have the environment appended to it to maintain environmental atomicity"
+  default     = "_dispute_tools__"
 }
 
 variable "tools_jwt_secret" {}
@@ -38,9 +39,18 @@ variable "tools_stripe_private" {}
 variable "tools_stripe_publishable" {}
 variable "tools_db_pool_min" {}
 variable "tools_db_pool_max" {}
-variable "tools_sender_email" {}
-variable "tools_disputes_bcc_address" {}
-variable "tools_contact_email" {}
+
+variable "tools_sender_email" {
+  default = "admin@debtcollective.org"
+}
+
+variable "tools_disputes_bcc_address" {
+  default = "admin@debtcollective.org"
+}
+
+variable "tools_contact_email" {
+  default = "admin@debtcollective.org"
+}
 
 # Discourse
 

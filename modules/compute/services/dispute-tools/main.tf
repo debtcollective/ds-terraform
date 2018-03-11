@@ -143,7 +143,7 @@ data "aws_acm_certificate" "debtcollective" {
 
 resource "aws_elb" "dispute_tools" {
   name               = "disputetools${var.environment}elb"
-  availability_zones = ["us-west-2a", "us-east-2a"]
+  availability_zones = ["us-west-2a", "us-east-2b"]
 
   listener {
     instance_port      = 8000
