@@ -5,7 +5,7 @@ BUCKET=debtcollective-terraform
 init: ## Initializes the terraform remote state backend and pulls the correct environments state.
 	@rm -rf .terraform/*.tf*
 	@terraform init
-	@-aws s3 cp s3://$(BUCKET)/$(ENVIRONMENT)/terraform.tfvars . --quiet
+	@-aws s3 cp s3://$(BUCKET)/$(ENVIRONMENT)/terraform.tfvars . --quiet --profile=tdc-Alexandre
 
 update: ## Gets any module updates
 	@terraform get -update=true

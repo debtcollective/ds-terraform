@@ -12,12 +12,29 @@ variable "environment" {
   default = "development"
 }
 
-variable "discourse_db_username" {}
-variable "discourse_db_password" {}
+variable "db_username" {}
+variable "db_password" {}
+variable "tools_port" {}
+variable "smtp_host" {}
+variable "smtp_port" {}
+variable "tools_smtp_pass" {}
+variable "tools_smtp_user" {}
+variable "tools_gmaps_api_key" {}
+variable "sso_endpoint" {}
+variable "sso_secret" {}
+variable "tools_cookie_name" {}
+variable "tools_jwt_secret" {}
+variable "tools_loggly_api_key" {}
+variable "tools_stripe_private" {}
+variable "tools_stripe_publishable" {}
+variable "tools_db_pool_min" {}
+variable "tools_db_pool_max" {}
+variable "sender_email" {}
+variable "disputes_bcc_address" {}
+variable "contact_email" {}
 
-variable "smtp_address" {}
-variable "smtp_username" {}
-variable "smtp_password" {}
+variable "discourse_smtp_user" {}
+variable "discourse_smtp_pass" {}
 
 /*
  * Remote State
@@ -106,9 +123,9 @@ module "discourse" {
 
   discourse_hostname = "community-staging.debtcollective.org"
 
-  discourse_smtp_address   = "${var.smtp_address}"
-  discourse_smtp_user_name = "${var.smtp_username}"
-  discourse_smtp_password  = "${var.smtp_password}"
+  discourse_smtp_address   = "${var.smtp_host}"
+  discourse_smtp_user_name = "${var.discourse_smtp_user}"
+  discourse_smtp_password  = "${var.discourse_smtp_pass}"
 
   discourse_db_host     = "${aws_db_instance.postgres.address}"
   discourse_db_name     = "discourse_${var.environment}"
@@ -121,8 +138,8 @@ module "discourse" {
 }
 
 module "dispute_tools" {
-  source      = "./modules/compute/services/dispute-tools"
-  environment = "${var.environment}"
+  source          = "./modules/compute/services/dispute-tools"
+  environment     = "${var.environment}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
   security_groups = "${module.vpc.ec2_security_group_id}"
 

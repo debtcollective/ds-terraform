@@ -138,11 +138,11 @@ POLICY
 
 data "aws_acm_certificate" "debtcollective" {
   domain   = "*.debtcollective.org"
-  statuses = ["AMAZON_ISSUED"]
+  statuses = ["ISSUED"]
 }
 
 resource "aws_elb" "dispute_tools" {
-  name               = "dispute_tools_${var.environment}_elb"
+  name               = "disputetools${var.environment}elb"
   availability_zones = ["us-west-2a", "us-east-2a"]
 
   listener {
@@ -150,7 +150,7 @@ resource "aws_elb" "dispute_tools" {
     instance_protocol  = "http"
     lb_port            = 443
     lb_protocol        = "https"
-    ssl_certificate_id = "${aws_acm_certificate.debtcollective.arn}"
+    ssl_certificate_id = "${data.aws_acm_certificate.debtcollective.arn}"
   }
 
   tags {
@@ -159,20 +159,12 @@ resource "aws_elb" "dispute_tools" {
   }
 }
 
-data "aws_ecs_task_definition" "dispute_tools" {
-  task_definition = "${aws_ecs_task_definition.dispute_tools.family}"
-}
-
 resource "aws_ecs_service" "dispute_tools" {
   name            = "dispute_tools"
   cluster         = "${aws_ecs_cluster.dispute_tools.id}"
   task_definition = "${aws_ecs_task_definition.dispute_tools.arn}"
   desired_count   = 1
   launch_type     = "FARGATE"
-
-  network_configuration {
-    assign_public_ip = true
-  }
 
   load_balancer {
     elb_name       = "${aws_elb.dispute_tools.name}"
@@ -229,14 +221,6 @@ resource "aws_ecs_task_definition" "dispute_tools" {
               "value": "${var.cookie_name}"
           },
           {
-              "name": "SITE_URL",
-              "value": "${var.site_url}"
-          },
-          {
-              "name": "PORT",
-              "value": "${var.port}"
-          },
-          {
               "name": "NODE_ENV",
               "value": "${var.environment}"
           },
@@ -270,7 +254,7 @@ resource "aws_ecs_task_definition" "dispute_tools" {
           },
           {
               "name": "EMAIL_PASS",
-              "value": "${var.smtp_pas}"
+              "value": "${var.smtp_pass}"
           },
           {
               "name": "LOGGLY_KEY",
@@ -290,7 +274,7 @@ resource "aws_ecs_task_definition" "dispute_tools" {
           },
           {
               "name": "AWS_UPLOAD_BUCKET",
-              "value": "${aws_s3_bucket.disputes.name}"
+              "value": "tds-tools-${var.environment}"
           },
           {
               "name": "AWS_ACCESS_KEY_ID",
@@ -351,8 +335,12 @@ data "aws_route53_zone" "primary" {
 
 resource "aws_route53_record" "dispute-tools" {
   zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "tools-staging"
+  name    = "tools-staging.debtcollective.org"
   type    = "A"
-  ttl     = 300
-  records = ["${}"]
+
+  alias {
+    name                   = "${aws_elb.dispute_tools.dns_name}"
+    zone_id                = "${aws_elb.dispute_tools.zone_id}"
+    evaluate_target_health = true
+  }
 }
