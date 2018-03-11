@@ -177,152 +177,42 @@ resource "aws_ecs_cluster" "dispute_tools" {
   name = "dispute_tools"
 }
 
+data "template_file" "container_definitions" {
+  template = "${file("${path.module}/container-definitions.json")}"
+
+  vars {
+    environment  = "${var.environment}"
+    sso_endpoint = "${var.sso_endpoint}"
+    sso_secret   = "${var.sso_secret}"
+    jwt_secret   = "${var.jwt_secret}"
+    cookie_name  = "${var.cookie_name}"
+
+    contact_email        = "${var.contact_email}"
+    sender_email         = "${var.sender_email}"
+    disputes_bcc_address = "${var.disputes_bcc_address}"
+
+    smtp_host = "${var.smtp_host}"
+    smtp_port = "${var.smtp_port}"
+    smtp_user = "${var.smtp_user}"
+    smtp_pass = "${var.smtp_pass}"
+
+    loggly_api_key = "${var.loggly_api_key}"
+
+    stripe_private     = "${var.stripe_private}"
+    stripe_publishable = "${var.stripe_publishable}"
+
+    google_maps_api_key = "${var.google_maps_api_key}"
+
+    db_connection_string = "${var.db_connection_string}"
+    db_pool_min          = "${var.db_pool_min}"
+    db_pool_max          = "${var.db_pool_max}"
+  }
+}
+
 resource "aws_ecs_task_definition" "dispute_tools" {
   family = "dispute_tools"
 
-  container_definitions = <<DEFINITION
-[
-  {
-      "dnsSearchDomains": null,
-      "logConfiguration": {
-          "logDriver": "awslogs",
-          "options": {
-              "awslogs-group": "/ecs/dispute-tools-staging",
-              "awslogs-region": "us-east-1",
-              "awslogs-stream-prefix": "ecs"
-          }
-      },
-      "entryPoint": [],
-      "portMappings": [
-          {
-              "hostPort": 8080,
-              "protocol": "tcp",
-              "containerPort": 8080
-          }
-      ],
-      "command": [],
-      "linuxParameters": null,
-      "cpu": 0,
-      "environment": [
-          {
-              "name": "SSO_ENDPOINT",
-              "value": "${var.sso_endpoint}"
-          },
-          {
-              "name": "SSO_SECRET",
-              "value": "${var.sso_secret}"
-          },
-          {
-              "name": "JWT_SECRET",
-              "value": "${var.jwt_secret}"
-          },
-          {
-              "name": "SSO_COOKIE_NAME",
-              "value": "${var.cookie_name}"
-          },
-          {
-              "name": "NODE_ENV",
-              "value": "${var.environment}"
-          },
-          {
-              "name": "EMAIL_CONTACT",
-              "value": "${var.contact_email}"
-          },
-          {
-              "name": "EMAIL_NO_REPLY",
-              "value": "${var.sender_email}"
-          },
-          {
-              "name": "EMAIL_DISPUTES_BCC",
-              "value": "${var.disputes_bcc_address}"
-          },
-          {
-              "name": "EMAIL_HOST",
-              "value": "${var.smtp_host}"
-          },
-          {
-              "name": "EMAIL_PORT",
-              "value": "${var.smtp_port}"
-          },
-          {
-              "name": "EMAIL_SECURE",
-              "value": "${var.smtp_secure}"
-          },
-          {
-              "name": "EMAIL_AUTH",
-              "value": "${var.smtp_user}"
-          },
-          {
-              "name": "EMAIL_PASS",
-              "value": "${var.smtp_pass}"
-          },
-          {
-              "name": "LOGGLY_KEY",
-              "value": "${var.loggly_api_key}"
-          },
-          {
-              "name": "STRIPE_PRIVATE",
-              "value": "${var.stripe_private}"
-          },
-          {
-              "name": "STRIPE_PUBLISHABLE",
-              "value": "${var.stripe_publishable}"
-          },
-          {
-              "name": "GMAPS_KEY",
-              "value": "${var.google_maps_api_key}"
-          },
-          {
-              "name": "AWS_UPLOAD_BUCKET",
-              "value": "tds-tools-${var.environment}"
-          },
-          {
-              "name": "AWS_ACCESS_KEY_ID",
-              "value": "${aws_iam_access_key.disputes_uploader.id}"
-          },
-          {
-              "name": "AWS_SECRET_ACCESS_KEY",
-              "value": "${aws_iam_access_key.disputes_uploader.secret}"
-          },
-          {
-              "name": "AWS_DEFAULT_REGION",
-              "value": "${aws_s3_bucket.disputes.region}""
-          },
-          {
-              "name": "DB_CONNECTION_STRING",
-              "value": "${var.db_connection_string}"
-          },
-          {
-              "name": "DB_POOL_MIN",
-              "value": "${var.db_pool_min}"
-          },
-          {
-              "name": "DB_POOL_MAX",
-              "value": "${var.db_pool_max}"
-          }
-      ],
-      "ulimits": null,
-      "dnsServers": null,
-      "mountPoints": null,
-      "workingDirectory": null,
-      "dockerSecurityOptions": null,
-      "memoryReservation": "",
-      "volumesFrom": null,
-      "image": "183550513269.dkr.ecr.us-west-2.amazonaws.com/ds-dispute-tools:latest",
-      "disableNetworking": null,
-      "healthCheck": null,
-      "essential": true,
-      "links": [],
-      "hostname": null,
-      "extraHosts": null,
-      "user": null,
-      "readonlyRootFilesystem": null,
-      "dockerLabels": null,
-      "privileged": null,
-      "name": "dispute-tools"
-  }
-]
-DEFINITION
+  container_definitions = "${data.template_file.container_definitions.rendered}"
 }
 
 resource "aws_eip" "disputes" {

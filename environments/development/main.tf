@@ -12,26 +12,37 @@ variable "environment" {
   default = "development"
 }
 
+# Shared
+
 variable "db_username" {}
 variable "db_password" {}
 variable "tools_port" {}
 variable "smtp_host" {}
 variable "smtp_port" {}
+variable "sso_endpoint" {}
+variable "sso_secret" {}
+
+# Dispute tools
+
 variable "tools_smtp_pass" {}
 variable "tools_smtp_user" {}
 variable "tools_gmaps_api_key" {}
-variable "sso_endpoint" {}
-variable "sso_secret" {}
-variable "tools_cookie_name" {}
+
+variable "tools_cookie_name" {
+  default = "_dispute_tools__"
+}
+
 variable "tools_jwt_secret" {}
 variable "tools_loggly_api_key" {}
 variable "tools_stripe_private" {}
 variable "tools_stripe_publishable" {}
 variable "tools_db_pool_min" {}
 variable "tools_db_pool_max" {}
-variable "sender_email" {}
-variable "disputes_bcc_address" {}
-variable "contact_email" {}
+variable "tools_sender_email" {}
+variable "tools_disputes_bcc_address" {}
+variable "tools_contact_email" {}
+
+# Discourse
 
 variable "discourse_smtp_user" {}
 variable "discourse_smtp_pass" {}
@@ -146,11 +157,11 @@ module "dispute_tools" {
   sso_endpoint = "${var.sso_endpoint}"
   sso_secret   = "${var.sso_secret}"
   jwt_secret   = "${var.tools_jwt_secret}"
-  cookie_name  = "${var.tools_cookie_name}"
+  cookie_name  = "${var.tools_cookie_name}${var.environment}__"
 
-  contact_email        = "${var.contact_email}"
-  sender_email         = "${var.sender_email}"
-  disputes_bcc_address = "${var.disputes_bcc_address}"
+  contact_email        = "${var.tools_contact_email}"
+  sender_email         = "${var.tools_sender_email}"
+  disputes_bcc_address = "${var.tools_disputes_bcc_address}"
 
   smtp_host = "${var.smtp_host}"
   smtp_port = "${var.smtp_port}"
