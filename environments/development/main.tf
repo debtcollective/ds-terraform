@@ -95,7 +95,7 @@ resource "aws_db_instance" "postgres" {
   engine            = "postgres"
   engine_version    = "9.6.6"
   instance_class    = "db.t2.micro"
-  name              = "tds-${var.environment}"
+  name              = "debtsyndicate${var.environment}"
   username          = "${var.db_username}"
   password          = "${var.db_password}"
 

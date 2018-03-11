@@ -23,99 +23,99 @@
     "environment": [
       {
         "name": "SSO_ENDPOINT",
-        "value": "${var.sso_endpoint}"
+        "value": "${sso_endpoint}"
       },
       {
         "name": "SSO_SECRET",
-        "value": "${var.sso_secret}"
+        "value": "${sso_secret}"
       },
       {
         "name": "JWT_SECRET",
-        "value": "${var.jwt_secret}"
+        "value": "${jwt_secret}"
       },
       {
         "name": "SSO_COOKIE_NAME",
-        "value": "${var.cookie_name}"
+        "value": "${cookie_name}"
       },
       {
         "name": "NODE_ENV",
-        "value": "${var.environment}"
+        "value": "${environment}"
       },
       {
         "name": "EMAIL_CONTACT",
-        "value": "${var.contact_email}"
+        "value": "${contact_email}"
       },
       {
         "name": "EMAIL_NO_REPLY",
-        "value": "${var.sender_email}"
+        "value": "${sender_email}"
       },
       {
         "name": "EMAIL_DISPUTES_BCC",
-        "value": "${var.disputes_bcc_address}"
+        "value": "${disputes_bcc_address}"
       },
       {
         "name": "EMAIL_HOST",
-        "value": "${var.smtp_host}"
+        "value": "${smtp_host}"
       },
       {
         "name": "EMAIL_PORT",
-        "value": "${var.smtp_port}"
+        "value": "${smtp_port}"
       },
       {
         "name": "EMAIL_SECURE",
-        "value": "${var.smtp_secure}"
+        "value": "true"
       },
       {
         "name": "EMAIL_AUTH",
-        "value": "${var.smtp_user}"
+        "value": "${smtp_user}"
       },
       {
         "name": "EMAIL_PASS",
-        "value": "${var.smtp_pass}"
+        "value": "${smtp_pass}"
       },
       {
         "name": "LOGGLY_KEY",
-        "value": "${var.loggly_api_key}"
+        "value": "${loggly_api_key}"
       },
       {
         "name": "STRIPE_PRIVATE",
-        "value": "${var.stripe_private}"
+        "value": "${stripe_private}"
       },
       {
         "name": "STRIPE_PUBLISHABLE",
-        "value": "${var.stripe_publishable}"
+        "value": "${stripe_publishable}"
       },
       {
         "name": "GMAPS_KEY",
-        "value": "${var.google_maps_api_key}"
+        "value": "${google_maps_api_key}"
       },
       {
         "name": "AWS_UPLOAD_BUCKET",
-        "value": "tds-tools-${var.environment}"
+        "value": "tds-tools-${environment}"
       },
       {
         "name": "AWS_ACCESS_KEY_ID",
-        "value": "${aws_iam_access_key.disputes_uploader.id}"
+        "value": "${access_key_id}"
       },
       {
         "name": "AWS_SECRET_ACCESS_KEY",
-        "value": "${aws_iam_access_key.disputes_uploader.secret}"
+        "value": "${secret_access_key}"
       },
       {
         "name": "AWS_DEFAULT_REGION",
-        "value": "${aws_s3_bucket.disputes.region}"
+        "value": "${bucket_region}"
       },
       {
         "name": "DB_CONNECTION_STRING",
-        "value": "${var.db_connection_string}"
+        "value": "${db_connection_string}"
       },
       {
         "name": "DB_POOL_MIN",
-        "value": "${var.db_pool_min}"
+        "value": "${db_pool_min}"
       },
       {
         "name": "DB_POOL_MAX",
-        "value": "${var.db_pool_max}"
+        "value": "${db_pool_max}"
       }
     ],
     "ulimits": null,
@@ -125,8 +125,7 @@
     "dockerSecurityOptions": null,
     "memoryReservation": "",
     "volumesFrom": null,
-    "image":
-      "183550513269.dkr.ecr.us-west-2.amazonaws.com/ds-dispute-tools:latest",
+    "image": "${repository_url}:latest",
     "disableNetworking": null,
     "healthCheck": null,
     "essential": true,

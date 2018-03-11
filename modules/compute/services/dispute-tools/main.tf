@@ -111,29 +111,19 @@ resource "aws_iam_access_key" "disputes_uploader" {
   user = "${aws_iam_user.disputes_uploader.name}"
 }
 
+data "template_file" "disputes_uploader_policy_document" {
+  template = "${file("${path.module}/bucket-policy.json")}"
+
+  vars {
+    resource_arn = "${aws_s3_bucket.disputes.arn}"
+  }
+}
+
 resource "aws_iam_user_policy" "disputes_uploader_policy" {
   name = "tds-disputes_uploader__policy-${var.environment}"
   user = "${aws_iam_user.disputes_uploader.name}"
 
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        {
-          "Effect": "Allow",
-          "Action": [
-            "s3:PutObject",
-            "s3:PutObjectAcl"
-          ],
-          "Resource": "${aws_s3_bucket.disputes.arn}"
-        }
-      ]
-    }
-  ]
-}
-POLICY
+  policy = "${data.template_file.disputes_uploader_policy_document.rendered}"
 }
 
 data "aws_acm_certificate" "debtcollective" {
@@ -143,7 +133,7 @@ data "aws_acm_certificate" "debtcollective" {
 
 resource "aws_elb" "dispute_tools" {
   name               = "disputetools${var.environment}elb"
-  availability_zones = ["us-west-2a", "us-east-2b"]
+  availability_zones = ["us-west-2a", "us-east-2a"]
 
   listener {
     instance_port      = 8000
@@ -157,6 +147,10 @@ resource "aws_elb" "dispute_tools" {
     Terraform = true
     Name      = "dispute_tools_${var.environment}_elb"
   }
+}
+
+resource "aws_ecr_repository" "dispute_tools" {
+  name = "ds-dispute-tools-${var.environment}"
 }
 
 resource "aws_ecs_service" "dispute_tools" {
@@ -206,6 +200,12 @@ data "template_file" "container_definitions" {
     db_connection_string = "${var.db_connection_string}"
     db_pool_min          = "${var.db_pool_min}"
     db_pool_max          = "${var.db_pool_max}"
+
+    access_key_id     = "${aws_iam_access_key.disputes_uploader.id}"
+    secret_access_key = "${aws_iam_access_key.disputes_uploader.secret}"
+    bucket_region     = "${aws_s3_bucket.disputes.region}"
+
+    repository_url = "${aws_ecr_repository.dispute_tools.repository_url}"
   }
 }
 
@@ -213,6 +213,10 @@ resource "aws_ecs_task_definition" "dispute_tools" {
   family = "dispute_tools"
 
   container_definitions = "${data.template_file.container_definitions.rendered}"
+
+  cpu                      = 1024
+  memory                   = 512
+  requires_compatibilities = ["FARGATE"]
 }
 
 resource "aws_eip" "disputes" {
