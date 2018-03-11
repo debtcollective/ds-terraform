@@ -136,6 +136,29 @@ resource "aws_iam_user_policy" "disputes_uploader_policy" {
 POLICY
 }
 
+data "aws_acm_certificate" "debtcollective" {
+  domain   = "*.debtcollective.org"
+  statuses = ["AMAZON_ISSUED"]
+}
+
+resource "aws_elb" "dispute_tools" {
+  name               = "dispute_tools_${var.environment}_elb"
+  availability_zones = ["us-west-2a", "us-east-2a"]
+
+  listener {
+    instance_port      = 8000
+    instance_protocol  = "http"
+    lb_port            = 443
+    lb_protocol        = "https"
+    ssl_certificate_id = "${aws_acm_certificate.debtcollective.arn}"
+  }
+
+  tags {
+    Terraform = true
+    Name      = "dispute_tools_${var.environment}_elb"
+  }
+}
+
 data "aws_ecs_task_definition" "dispute_tools" {
   task_definition = "${aws_ecs_task_definition.dispute_tools.family}"
 }
@@ -149,6 +172,12 @@ resource "aws_ecs_service" "dispute_tools" {
 
   network_configuration {
     assign_public_ip = true
+  }
+
+  load_balancer {
+    elb_name       = "${aws_elb.dispute_tools.name}"
+    container_name = "tds-dispute-tools"
+    container_port = 8080
   }
 }
 
