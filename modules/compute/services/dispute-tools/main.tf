@@ -191,10 +191,15 @@ data "template_file" "container_definitions" {
     sender_email         = "${var.sender_email}"
     disputes_bcc_address = "${var.disputes_bcc_address}"
 
-    smtp_host = "${var.smtp_host}"
-    smtp_port = "${var.smtp_port}"
-    smtp_user = "${var.smtp_user}"
-    smtp_pass = "${var.smtp_pass}"
+    smtp_host   = "${var.smtp_host}"
+    smtp_port   = "${var.smtp_port}"
+    smtp_user   = "${var.smtp_user}"
+    smtp_pass   = "${var.smtp_pass}"
+    smtp_secure = "${var.smtp_secure}"
+
+    aws_access_id     = "${aws_iam_access_key.disputes_uploader.id}"
+    aws_access_secret = "${aws_iam_access_key.disputes_uploader.secret}"
+    aws_region        = "${aws_s3_bucket.disputes.region}"
 
     loggly_api_key = "${var.loggly_api_key}"
 
