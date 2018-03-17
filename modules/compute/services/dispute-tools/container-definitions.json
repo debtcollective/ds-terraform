@@ -1,25 +1,14 @@
 [
   {
-    "dnsSearchDomains": null,
-    "logConfiguration": {
-      "logDriver": "awslogs",
-      "options": {
-        "awslogs-group": "/ecs/dispute-tools-staging",
-        "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "ecs"
-      }
-    },
-    "entryPoint": [],
+    "memory": 300,
     "portMappings": [
       {
-        "hostPort": 8080,
-        "protocol": "tcp",
-        "containerPort": 8080
+        "hostPort": 80,
+        "containerPort": 80
       }
     ],
+    "networkMode": "awsvpc",
     "command": [],
-    "linuxParameters": null,
-    "cpu": 1024,
     "environment": [
       {
         "name": "SSO_ENDPOINT",
@@ -116,26 +105,13 @@
       {
         "name": "DB_POOL_MAX",
         "value": "${db_pool_max}"
+      },
+      {
+        "name": "PORT",
+        "value": "80"
       }
     ],
-    "ulimits": null,
-    "dnsServers": null,
-    "mountPoints": null,
-    "workingDirectory": null,
-    "dockerSecurityOptions": null,
-    "memoryReservation": "",
-    "volumesFrom": null,
     "image": "${repository_url}:latest",
-    "disableNetworking": null,
-    "healthCheck": null,
-    "essential": true,
-    "links": [],
-    "hostname": null,
-    "extraHosts": null,
-    "user": null,
-    "readonlyRootFilesystem": null,
-    "dockerLabels": null,
-    "privileged": null,
-    "name": "dispute-tools"
+    "name": "tds-dispute-tools"
   }
 ]

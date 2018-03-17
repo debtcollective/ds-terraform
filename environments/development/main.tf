@@ -161,6 +161,8 @@ module "discourse" {
 module "dispute_tools" {
   source          = "./modules/compute/services/dispute-tools"
   environment     = "${var.environment}"
+  vpc_id          = "${module.vpc.id}"
+  subnets         = "${module.vpc.public_subnet_ids}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
   security_groups = "${module.vpc.ec2_security_group_id}"
 
