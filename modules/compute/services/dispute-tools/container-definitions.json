@@ -52,7 +52,7 @@
       },
       {
         "name": "EMAIL_SECURE",
-        "value": "true"
+        "value": "${smtp_secure}"
       },
       {
         "name": "EMAIL_AUTH",
@@ -84,15 +84,15 @@
       },
       {
         "name": "AWS_ACCESS_KEY_ID",
-        "value": "${access_key_id}"
+        "value": "${aws_access_id}"
       },
       {
         "name": "AWS_SECRET_ACCESS_KEY",
-        "value": "${secret_access_key}"
+        "value": "${aws_access_secret}"
       },
       {
         "name": "AWS_DEFAULT_REGION",
-        "value": "${bucket_region}"
+        "value": "${aws_region}"
       },
       {
         "name": "DB_CONNECTION_STRING",
@@ -105,10 +105,6 @@
       {
         "name": "DB_POOL_MAX",
         "value": "${db_pool_max}"
-      },
-      {
-        "name": "PORT",
-        "value": "80"
       }
     ],
     "image": "${repository_url}:latest",
