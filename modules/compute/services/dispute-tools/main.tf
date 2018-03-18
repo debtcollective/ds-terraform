@@ -5,8 +5,17 @@ variable "environment" {
   description = "Environment name"
 }
 
+variable "subnets" {
+  type        = "list"
+  description = "VPC Subnet ids"
+}
+
 variable "subnet_id" {
   description = "VPC Subnet ID to be used in by the instance"
+}
+
+variable "vpc_id" {
+  description = "VPC Id to be used by the ALB"
 }
 
 variable "security_groups" {
@@ -111,29 +120,19 @@ resource "aws_iam_access_key" "disputes_uploader" {
   user = "${aws_iam_user.disputes_uploader.name}"
 }
 
+data "template_file" "disputes_uploader_policy_document" {
+  template = "${file("${path.module}/bucket-policy.json")}"
+
+  vars {
+    resource_arn = "${aws_s3_bucket.disputes.arn}"
+  }
+}
+
 resource "aws_iam_user_policy" "disputes_uploader_policy" {
   name = "tds-disputes_uploader__policy-${var.environment}"
   user = "${aws_iam_user.disputes_uploader.name}"
 
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        {
-          "Effect": "Allow",
-          "Action": [
-            "s3:PutObject",
-            "s3:PutObjectAcl"
-          ],
-          "Resource": "${aws_s3_bucket.disputes.arn}"
-        }
-      ]
-    }
-  ]
-}
-POLICY
+  policy = "${data.template_file.disputes_uploader_policy_document.rendered}"
 }
 
 data "aws_acm_certificate" "debtcollective" {
@@ -141,22 +140,78 @@ data "aws_acm_certificate" "debtcollective" {
   statuses = ["ISSUED"]
 }
 
-resource "aws_elb" "dispute_tools" {
-  name    = "disputetools${var.environment}elb"
-  subnets = ["${var.subnet_id}"]
+resource "aws_alb_target_group" "dispute_tools" {
+  name        = "${var.environment}-alb-target-group"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = "${var.vpc_id}"
+  target_type = "ip"
 
-  listener {
-    instance_port      = 8000
-    instance_protocol  = "http"
-    lb_port            = 443
-    lb_protocol        = "https"
-    ssl_certificate_id = "${data.aws_acm_certificate.debtcollective.arn}"
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "web_inbound_sg" {
+  name        = "${var.environment}-web-inbound-sg"
+  description = "Allow HTTP from Anywhere into ALB"
+  vpc_id      = "${var.vpc_id}"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8
+    to_port     = 0
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
-    Terraform = true
-    Name      = "dispute_tools_${var.environment}_elb"
+    Name = "${var.environment}-web-inbound-sg"
   }
+}
+
+resource "aws_alb" "alb_dispute_tools" {
+  name    = "${var.environment}-alb-dispute-tools"
+  subnets = ["${var.subnets}"]
+}
+
+resource "aws_alb_listener" "dispute_tools" {
+  load_balancer_arn = "${aws_alb.alb_dispute_tools.arn}"
+  port              = "443"
+  protocol          = "HTTPS"
+  depends_on        = ["aws_alb_target_group.dispute_tools"]
+
+  certificate_arn = "${data.aws_acm_certificate.debtcollective.arn}"
+  ssl_policy      = "ELBSecurityPolicy-2015-05"
+
+  default_action {
+    target_group_arn = "${aws_alb_target_group.dispute_tools.arn}"
+    type             = "forward"
+  }
+}
+
+resource "aws_ecr_repository" "dispute_tools" {
+  name = "ds-dispute-tools-${var.environment}"
 }
 
 resource "aws_ecs_service" "dispute_tools" {
@@ -166,10 +221,14 @@ resource "aws_ecs_service" "dispute_tools" {
   desired_count   = 1
   launch_type     = "FARGATE"
 
+  network_configuration {
+    subnets = ["${var.subnets}"]
+  }
+
   load_balancer {
-    elb_name       = "${aws_elb.dispute_tools.name}"
-    container_name = "tds-dispute-tools"
-    container_port = 8080
+    target_group_arn = "${aws_alb_target_group.dispute_tools.arn}"
+    container_name   = "tds-dispute-tools"
+    container_port   = "80"
   }
 }
 
@@ -211,13 +270,28 @@ data "template_file" "container_definitions" {
     db_connection_string = "${var.db_connection_string}"
     db_pool_min          = "${var.db_pool_min}"
     db_pool_max          = "${var.db_pool_max}"
+
+    access_key_id     = "${aws_iam_access_key.disputes_uploader.id}"
+    secret_access_key = "${aws_iam_access_key.disputes_uploader.secret}"
+    bucket_region     = "${aws_s3_bucket.disputes.region}"
+
+    repository_url = "${aws_ecr_repository.dispute_tools.repository_url}"
   }
 }
 
-resource "aws_ecs_task_definition" "dispute_tools" {
-  family = "dispute_tools"
+data "aws_iam_role" "exec_role" {
+  name = "ecsTaskExecutionRole"
+}
 
+resource "aws_ecs_task_definition" "dispute_tools" {
+  family                = "dispute_tools"
+  execution_role_arn    = "${data.aws_iam_role.exec_role.arn}"
   container_definitions = "${data.template_file.container_definitions.rendered}"
+
+  network_mode             = "awsvpc"
+  cpu                      = "256"
+  memory                   = "512"
+  requires_compatibilities = ["FARGATE"]
 }
 
 resource "aws_eip" "disputes" {
@@ -234,8 +308,8 @@ resource "aws_route53_record" "dispute-tools" {
   type    = "A"
 
   alias {
-    name                   = "${aws_elb.dispute_tools.dns_name}"
-    zone_id                = "${aws_elb.dispute_tools.zone_id}"
+    name                   = "${aws_alb.alb_dispute_tools.dns_name}"
+    zone_id                = "${aws_alb.alb_dispute_tools.zone_id}"
     evaluate_target_health = true
   }
 }
