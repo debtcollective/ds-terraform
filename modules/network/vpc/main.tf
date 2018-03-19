@@ -215,6 +215,13 @@ resource "aws_security_group" "ec2" {
   }
 
   ingress {
+    from_port   = 8
+    to_port     = 0
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port       = 32768
     to_port         = 61000
     protocol        = "tcp"

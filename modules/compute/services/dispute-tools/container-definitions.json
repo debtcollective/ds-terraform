@@ -107,7 +107,7 @@
         "value": "${db_pool_max}"
       }
     ],
-    "image": "${repository_url}:latest",
+    "image": "${image_name}",
     "name": "tds-dispute-tools"
   }
 ]

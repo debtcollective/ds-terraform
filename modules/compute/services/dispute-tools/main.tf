@@ -5,6 +5,11 @@ variable "environment" {
   description = "Environment name"
 }
 
+variable "image_name" {
+  description = "Docker image for ECS task"
+  default     = "183550513269.dkr.ecr.us-east-1.amazonaws.com/dispute-tools:latest"
+}
+
 variable "subnets" {
   type        = "list"
   description = "VPC Subnet ids"
@@ -140,6 +145,11 @@ data "aws_acm_certificate" "debtcollective" {
   statuses = ["ISSUED"]
 }
 
+resource "aws_alb" "alb_dispute_tools" {
+  name    = "${var.environment}-alb-dispute-tools"
+  subnets = ["${var.subnets}"]
+}
+
 resource "aws_alb_target_group" "dispute_tools" {
   name        = "${var.environment}-alb-target-group"
   port        = 80
@@ -150,49 +160,6 @@ resource "aws_alb_target_group" "dispute_tools" {
   lifecycle {
     create_before_destroy = true
   }
-}
-
-resource "aws_security_group" "web_inbound_sg" {
-  name        = "${var.environment}-web-inbound-sg"
-  description = "Allow HTTP from Anywhere into ALB"
-  vpc_id      = "${var.vpc_id}"
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 8
-    to_port     = 0
-    protocol    = "icmp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags {
-    Name = "${var.environment}-web-inbound-sg"
-  }
-}
-
-resource "aws_alb" "alb_dispute_tools" {
-  name    = "${var.environment}-alb-dispute-tools"
-  subnets = ["${var.subnets}"]
 }
 
 resource "aws_alb_listener" "dispute_tools" {
@@ -208,10 +175,6 @@ resource "aws_alb_listener" "dispute_tools" {
     target_group_arn = "${aws_alb_target_group.dispute_tools.arn}"
     type             = "forward"
   }
-}
-
-resource "aws_ecr_repository" "dispute_tools" {
-  name = "ds-dispute-tools-${var.environment}"
 }
 
 resource "aws_ecs_service" "dispute_tools" {
@@ -233,7 +196,7 @@ resource "aws_ecs_service" "dispute_tools" {
 }
 
 resource "aws_ecs_cluster" "dispute_tools" {
-  name = "dispute_tools"
+  name = "dispute_tools_${var.environment}"
 }
 
 data "template_file" "container_definitions" {
@@ -241,6 +204,7 @@ data "template_file" "container_definitions" {
 
   vars {
     environment  = "${var.environment}"
+    image_name   = "${var.image_name}"
     sso_endpoint = "${var.sso_endpoint}"
     sso_secret   = "${var.sso_secret}"
     jwt_secret   = "${var.jwt_secret}"
@@ -274,8 +238,6 @@ data "template_file" "container_definitions" {
     access_key_id     = "${aws_iam_access_key.disputes_uploader.id}"
     secret_access_key = "${aws_iam_access_key.disputes_uploader.secret}"
     bucket_region     = "${aws_s3_bucket.disputes.region}"
-
-    repository_url = "${aws_ecr_repository.dispute_tools.repository_url}"
   }
 }
 
@@ -304,7 +266,7 @@ data "aws_route53_zone" "primary" {
 
 resource "aws_route53_record" "dispute-tools" {
   zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "tools-staging.debtcollective.org"
+  name    = "tools-${var.environment}.debtcollective.org"
   type    = "A"
 
   alias {
