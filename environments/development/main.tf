@@ -51,6 +51,10 @@ variable "tools_contact_email" {
   default = "admin@debtcollective.org"
 }
 
+variable "tools_image_name" {
+  description = "Full repository URI reference to image name to deploy"
+}
+
 # Discourse
 
 variable "discourse_smtp_user" {}
@@ -209,6 +213,8 @@ module "dispute_tools" {
   db_connection_string = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/dispute_tools_${var.environment}"
   db_pool_min          = "${var.tools_db_pool_min}"
   db_pool_max          = "${var.tools_db_pool_max}"
+
+  image_name = "${var.tools_image_name}"
 }
 
 // Route 53
