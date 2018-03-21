@@ -256,22 +256,13 @@ resource "aws_ecs_task_definition" "dispute_tools" {
   requires_compatibilities = ["FARGATE"]
 }
 
-resource "aws_eip" "disputes" {
-  vpc = true
+/*
+ * Outputs
+ */
+output "alb_dns_name" {
+  value = "${aws_alb.alb_dispute_tools.dns_name}"
 }
 
-data "aws_route53_zone" "primary" {
-  name = "debtcollective.org."
-}
-
-resource "aws_route53_record" "dispute-tools" {
-  zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "tools-${var.environment}.debtcollective.org"
-  type    = "A"
-
-  alias {
-    name                   = "${aws_alb.alb_dispute_tools.dns_name}"
-    zone_id                = "${aws_alb.alb_dispute_tools.zone_id}"
-    evaluate_target_health = true
-  }
+output "alb_zone_id" {
+  value = "${aws_alb.alb_dispute_tools.zone_id}"
 }

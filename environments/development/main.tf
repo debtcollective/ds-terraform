@@ -19,7 +19,6 @@ variable "db_password" {}
 variable "tools_port" {}
 variable "smtp_host" {}
 variable "smtp_port" {}
-variable "sso_endpoint" {}
 variable "sso_secret" {}
 
 # Dispute tools
@@ -56,6 +55,11 @@ variable "tools_contact_email" {
 
 variable "discourse_smtp_user" {}
 variable "discourse_smtp_pass" {}
+
+# Mediawiki
+
+variable "mediawiki_smtp_user" {}
+variable "mediawiki_smtp_pass" {}
 
 /*
  * Remote State
@@ -137,7 +141,6 @@ resource "aws_key_pair" "development" {
   }
 }
 
-// Discourse EC2 Instance
 module "discourse" {
   source      = "./modules/compute/services/discourse"
   environment = "${var.environment}"
@@ -158,6 +161,22 @@ module "discourse" {
   security_groups = "${module.vpc.ec2_security_group_id}"
 }
 
+module "mediawiki" {
+  source      = "./modules/compute/services/mediawiki"
+  environment = "${var.environment}"
+
+  smtp_host = "${var.smtp_host}"
+  smtp_port = "${var.smtp_port}"
+  smtp_user = "${var.mediawiki_smtp_user}"
+  smtp_pass = "${var.mediawiki_smtp_pass}"
+
+  domain = "wiki-${var.environment}.debtcollective.org"
+
+  key_name        = "${aws_key_pair.development.key_name}"
+  subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
+  security_groups = "${module.vpc.ec2_security_group_id}"
+}
+
 module "dispute_tools" {
   source          = "./modules/compute/services/dispute-tools"
   environment     = "${var.environment}"
@@ -166,7 +185,7 @@ module "dispute_tools" {
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
   security_groups = "${module.vpc.ec2_security_group_id}"
 
-  sso_endpoint = "${var.sso_endpoint}"
+  sso_endpoint = "https://community-development.debtcollective.org/sso/sso_provider"
   sso_secret   = "${var.sso_secret}"
   jwt_secret   = "${var.tools_jwt_secret}"
   cookie_name  = "${var.tools_cookie_name}${var.environment}__"
@@ -190,4 +209,37 @@ module "dispute_tools" {
   db_connection_string = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/dispute_tools_${var.environment}"
   db_pool_min          = "${var.tools_db_pool_min}"
   db_pool_max          = "${var.tools_db_pool_max}"
+}
+
+// Route 53
+data "aws_route53_zone" "primary" {
+  name = "debtcollective.org."
+}
+
+resource "aws_route53_record" "discourse" {
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = "community-${var.environment}"
+  type    = "A"
+  ttl     = 300
+  records = ["${module.discourse.public_ip}"]
+}
+
+resource "aws_route53_record" "mediawiki" {
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = "wiki-${var.environment}"
+  type    = "A"
+  ttl     = 300
+  records = ["${module.mediawiki.public_ip}"]
+}
+
+resource "aws_route53_record" "dispute_tools" {
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = "tools-${var.environment}"
+  type    = "A"
+
+  alias {
+    name                   = "${module.dispute_tools.alb_dns_name}"
+    zone_id                = "${module.dispute_tools.alb_zone_id}"
+    evaluate_target_health = true
+  }
 }

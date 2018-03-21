@@ -228,19 +228,6 @@ resource "aws_eip" "discourse" {
   vpc      = true
 }
 
-// Route 53
-data "aws_route53_zone" "primary" {
-  name = "debtcollective.org."
-}
-
-resource "aws_route53_record" "discourse" {
-  zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "community-staging"
-  type    = "A"
-  ttl     = 300
-  records = ["${aws_eip.discourse.public_ip}"]
-}
-
 /*
  * Outputs
  */
