@@ -12,15 +12,14 @@ sudo mv lego_linux_amd64 /usr/local/bin/lego
 
 # Run LEGO
 echo "Running LEGO"
-sudo /opt/bitnami/ctlscript.sh stop
 sudo lego --email="orlando@hashlabs.com" --domains="${domain}" --path="/etc/lego" run
 
 # Move SSL certificates
 sudo mv /opt/bitnami/apache2/conf/server.crt /opt/bitnami/apache2/conf/server.crt.old
 sudo mv /opt/bitnami/apache2/conf/server.key /opt/bitnami/apache2/conf/server.key.old
 sudo mv /opt/bitnami/apache2/conf/server.csr /opt/bitnami/apache2/conf/server.csr.old
-sudo ln -s /etc/lego/certificates/wiki-development.debtcollective.org.key /opt/bitnami/apache2/conf/server.key
-sudo ln -s /etc/lego/certificates/wiki-development.debtcollective.org.crt /opt/bitnami/apache2/conf/server.crt
+sudo ln -s /etc/lego/certificates/${domain}.key /opt/bitnami/apache2/conf/server.key
+sudo ln -s /etc/lego/certificates/${domain}.crt /opt/bitnami/apache2/conf/server.crt
 sudo chown root:root /opt/bitnami/apache2/conf/server*
 sudo chmod 600 /opt/bitnami/apache2/conf/server*
 
@@ -37,17 +36,17 @@ sed -e '/^\$wgEmergencyContact/ d; /^\$wgPasswordSender/ d; /^\$wgSitename/ d; /
 sudo cat <<EOT >> /opt/bitnami/apps/mediawiki/htdocs/LocalSettings.php
 # Our configuration
 \$wgSMTP = array(
-  'host' => 'tls://${smtp_host}',
-  'IDHost' => '${smtp_host},
+  'host' => '${smtp_host}',
+  'IDHost' => '${domain}',
   'port' => ${smtp_port},
   'username' => '${smtp_user}',
   'password' => '${smtp_pass}',
   'auth' => true
 );
-\$wgEmergencyContact = "admin@debtcollective.org";
-\$wgPasswordSender   = "admin@debtcollective.org";
-\$wgSitename      = "The Debt Syndicate";
-\$wgMetaNamespace = "The Debt Syndicate";
+\$wgEmergencyContact = "${admin_email}";
+\$wgPasswordSender   = "${admin_email}"
+\$wgSitename      = "${sitename}";
+\$wgMetaNamespace = "${sitename}";
 \$wgLogo = "$wgScriptPath/resources/assets/dc.png";
 EOT
 

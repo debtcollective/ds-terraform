@@ -39,6 +39,16 @@ variable "smtp_pass" {
   description = "SMTP password"
 }
 
+variable "admin_email" {
+  description = "Support and contact email"
+  default     = "admin@debtsyndicate.org"
+}
+
+variable "sitename" {
+  description = "Sitename to be displayed in the website"
+  default     = "The Debt Syndicate"
+}
+
 variable "domain" {
   description = "Domain to be used by the instance"
 }
@@ -84,11 +94,13 @@ data "template_file" "bootstrap" {
   template = "${file("${path.module}/bootstrap.sh")}"
 
   vars {
-    domain    = "${var.domain}"
-    smtp_host = "${var.smtp_host}"
-    smtp_port = "${var.smtp_port}"
-    smtp_user = "${var.smtp_user}"
-    smtp_pass = "${var.smtp_pass}"
+    domain      = "${var.domain}"
+    sitename    = "${var.sitename}"
+    admin_email = "${var.admin_email}"
+    smtp_host   = "${var.smtp_host}"
+    smtp_port   = "${var.smtp_port}"
+    smtp_user   = "${var.smtp_user}"
+    smtp_pass   = "${var.smtp_pass}"
   }
 }
 
