@@ -106,6 +106,18 @@ variable "db_pool_max" {
   default     = 30
 }
 
+variable "discourse_base_url" {
+  description = "Discourse instance base url"
+}
+
+variable "discourse_api_key" {
+  description = "Discourse API key"
+}
+
+variable "discourse_api_username" {
+  description = "Discourse API username to go with key"
+}
+
 resource "aws_s3_bucket" "disputes" {
   bucket = "tds-tools-${var.environment}"
   acl    = "private"
@@ -238,6 +250,10 @@ data "template_file" "container_definitions" {
     access_key_id     = "${aws_iam_access_key.disputes_uploader.id}"
     secret_access_key = "${aws_iam_access_key.disputes_uploader.secret}"
     bucket_region     = "${aws_s3_bucket.disputes.region}"
+
+    discourse_api_key      = "${var.discourse_api_key}"
+    discourse_api_username = "${var.discourse_api_username}"
+    discourse_base_url     = "${var.discourse_base_url}"
   }
 }
 
