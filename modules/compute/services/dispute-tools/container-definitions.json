@@ -105,6 +105,18 @@
       {
         "name": "DB_POOL_MAX",
         "value": "${db_pool_max}"
+      },
+      {
+        "name": "DISCOURSE_BASE_URL",
+        "value": "${discourse_base_url}"
+      },
+      {
+        "name": "DISCOURSE_API_KEY",
+        "value": "${discourse_api_key}"
+      },
+      {
+        "name": "DISCOURSE_API_USERNAME",
+        "value": "${discourse_api_username}"
       }
     ],
     "image": "${image_name}",
