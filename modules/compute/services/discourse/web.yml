@@ -42,3 +42,4 @@ hooks:
           - git clone https://github.com/discourse/docker_manager.git
           - git clone https://github.com/angusmcleod/discourse-events.git
           - git clone https://github.com/angusmcleod/discourse-locations.git
+          - git clone https://github.com/debtcollective/discourse-theme.git

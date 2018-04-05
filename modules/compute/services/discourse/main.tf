@@ -81,6 +81,11 @@ variable "instance_type" {
   default     = "t2.small"
 }
 
+variable "volume_size" {
+  description = "EBS block size"
+  default     = 25
+}
+
 /*
  * Resources
  */
@@ -145,7 +150,7 @@ resource "aws_instance" "discourse" {
   }
 
   root_block_device {
-    volume_size           = 12
+    volume_size           = "${var.volume_size}"
     volume_type           = "gp2"
     delete_on_termination = false
   }
