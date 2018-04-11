@@ -1,14 +1,13 @@
 [
   {
-    "memory": 300,
+    "image": "${image_name}",
+    "name": "${container_name}",
+    "memoryReservation": 256,
     "portMappings": [
       {
-        "hostPort": 80,
-        "containerPort": 80
+        "containerPort": 8080
       }
     ],
-    "networkMode": "awsvpc",
-    "command": [],
     "environment": [
       {
         "name": "SSO_ENDPOINT",
@@ -80,7 +79,7 @@
       },
       {
         "name": "AWS_UPLOAD_BUCKET",
-        "value": "tds-tools-${environment}"
+        "value": "${aws_bucket_name}"
       },
       {
         "name": "AWS_ACCESS_KEY_ID",
@@ -119,7 +118,13 @@
         "value": "${discourse_api_username}"
       }
     ],
-    "image": "${image_name}",
-    "name": "tds-dispute-tools"
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group" : "${log_group}",
+        "awslogs-region": "${aws_region}",
+        "awslogs-stream-prefix": "${container_name}"
+      }
+    }
   }
 ]

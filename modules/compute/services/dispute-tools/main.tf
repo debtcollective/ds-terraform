@@ -10,21 +10,21 @@ variable "image_name" {
   default     = "183550513269.dkr.ecr.us-east-1.amazonaws.com/dispute-tools:latest"
 }
 
-variable "subnets" {
+variable "subnet_ids" {
+  description = "VPC Subnet IDs to be used in the Launch Configuration for the instances running in this cluster"
   type        = "list"
-  description = "VPC Subnet ids"
-}
-
-variable "subnet_id" {
-  description = "VPC Subnet ID to be used in by the instance"
 }
 
 variable "vpc_id" {
-  description = "VPC Id to be used by the ALB"
+  description = "VPC Id to be used by the LB"
 }
 
-variable "security_groups" {
+variable "ec2_security_groups" {
   description = "VPC Security Groups IDs to be used by the instance"
+}
+
+variable "elb_security_groups" {
+  description = "VPC Security Groups IDs to be used by the load balancer"
 }
 
 variable "sso_endpoint" {
@@ -118,8 +118,38 @@ variable "discourse_api_username" {
   description = "Discourse API username to go with key"
 }
 
+variable "log_retention_in_days" {
+  description = "Cloudwatch logs retention"
+  default     = 3
+}
+
+variable "acm_certificate_domain" {
+  description = "ACM certificate domain name to be used for SSL"
+  default     = "*.debtsyndicate.org"
+}
+
+variable "key_name" {
+  description = "SSH Key Pair to be assigned to the Launch Configuration for the instances running in this cluster"
+}
+
+variable "instance_type" {
+  description = "Instace type Launch Configuration for the instances running in this cluster"
+  default     = "t2.micro"
+}
+
+variable "asg_min_size" {
+  description = "Auto Scaling Group minimium size for the cluster"
+  default     = 1
+}
+
+variable "asg_max_size" {
+  description = "Auto Scaling Group maximum size for the cluster"
+  default     = 1
+}
+
+// S3 Bucket and permissions
 resource "aws_s3_bucket" "disputes" {
-  bucket = "tds-tools-${var.environment}"
+  bucket = "dispute-tools-uploads-${var.environment}"
   acl    = "private"
 
   tags {
@@ -130,7 +160,7 @@ resource "aws_s3_bucket" "disputes" {
 }
 
 resource "aws_iam_user" "disputes_uploader" {
-  name = "tds-disputes_uploader-${var.environment}"
+  name = "disputes-uploader-${var.environment}"
 }
 
 resource "aws_iam_access_key" "disputes_uploader" {
@@ -146,47 +176,62 @@ data "template_file" "disputes_uploader_policy_document" {
 }
 
 resource "aws_iam_user_policy" "disputes_uploader_policy" {
-  name = "tds-disputes_uploader__policy-${var.environment}"
+  name = "disputes-uploader-policy-${var.environment}"
   user = "${aws_iam_user.disputes_uploader.name}"
 
   policy = "${data.template_file.disputes_uploader_policy_document.rendered}"
 }
 
+// Load balancer
 data "aws_acm_certificate" "debtcollective" {
-  domain   = "*.debtcollective.org"
+  domain   = "${var.acm_certificate_domain}"
   statuses = ["ISSUED"]
 }
 
-resource "aws_alb" "alb_dispute_tools" {
-  name    = "${var.environment}-alb-dispute-tools"
-  subnets = ["${var.subnets}"]
+resource "aws_lb" "lb_dispute_tools" {
+  name            = "tools-lb-${var.environment}"
+  security_groups = ["${var.elb_security_groups}"]
+  subnets         = ["${var.subnet_ids}"]
 }
 
-resource "aws_alb_target_group" "dispute_tools" {
-  name        = "${var.environment}-alb-target-group"
+resource "aws_lb_target_group" "dispute_tools" {
+  name_prefix = "tools-"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = "${var.vpc_id}"
-  target_type = "ip"
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-resource "aws_alb_listener" "dispute_tools" {
-  load_balancer_arn = "${aws_alb.alb_dispute_tools.arn}"
-  port              = "443"
-  protocol          = "HTTPS"
-  depends_on        = ["aws_alb_target_group.dispute_tools"]
-
-  certificate_arn = "${data.aws_acm_certificate.debtcollective.arn}"
-  ssl_policy      = "ELBSecurityPolicy-2015-05"
+resource "aws_lb_listener" "dispute_tools_http" {
+  load_balancer_arn = "${aws_lb.lb_dispute_tools.id}"
+  port              = "80"
+  protocol          = "HTTP"
 
   default_action {
-    target_group_arn = "${aws_alb_target_group.dispute_tools.arn}"
+    target_group_arn = "${aws_lb_target_group.dispute_tools.arn}"
     type             = "forward"
   }
+}
+
+resource "aws_lb_listener" "dispute_tools_https" {
+  load_balancer_arn = "${aws_lb.lb_dispute_tools.id}"
+  port              = "443"
+  protocol          = "HTTPS"
+  certificate_arn   = "${data.aws_acm_certificate.debtcollective.arn}"
+  ssl_policy        = "ELBSecurityPolicy-2015-05"
+
+  default_action {
+    target_group_arn = "${aws_lb_target_group.dispute_tools.arn}"
+    type             = "forward"
+  }
+}
+
+// ECS service and task
+data "aws_iam_role" "ecs_instance_role" {
+  name = "ecs-instance-role"
 }
 
 resource "aws_ecs_service" "dispute_tools" {
@@ -194,16 +239,12 @@ resource "aws_ecs_service" "dispute_tools" {
   cluster         = "${aws_ecs_cluster.dispute_tools.id}"
   task_definition = "${aws_ecs_task_definition.dispute_tools.arn}"
   desired_count   = 1
-  launch_type     = "FARGATE"
-
-  network_configuration {
-    subnets = ["${var.subnets}"]
-  }
+  iam_role        = "${data.aws_iam_role.ecs_instance_role.arn}"
 
   load_balancer {
-    target_group_arn = "${aws_alb_target_group.dispute_tools.arn}"
-    container_name   = "tds-dispute-tools"
-    container_port   = "80"
+    target_group_arn = "${aws_lb_target_group.dispute_tools.arn}"
+    container_name   = "dispute_tools_${var.environment}"
+    container_port   = "8080"
   }
 }
 
@@ -211,16 +252,50 @@ resource "aws_ecs_cluster" "dispute_tools" {
   name = "dispute_tools_${var.environment}"
 }
 
+resource "aws_iam_instance_profile" "ecs_profile" {
+  name = "ecs-instance-profile-dt-${var.environment}"
+  role = "${data.aws_iam_role.ecs_instance_role.id}"
+}
+
+module "dispute_tools_lc" {
+  source      = "../../../utils/launch_configuration"
+  environment = "${var.environment}"
+
+  cluster_name            = "${aws_ecs_cluster.dispute_tools.name}"
+  key_name                = "${var.key_name}"
+  iam_instance_profile_id = "${aws_iam_instance_profile.ecs_profile.id}"
+  security_groups         = ["${var.ec2_security_groups}"]
+  instance_type           = "${var.instance_type}"
+}
+
+resource "aws_autoscaling_group" "dispute_tools_asg" {
+  launch_configuration = "${module.dispute_tools_lc.id}"
+  min_size             = "${var.asg_min_size}"
+  max_size             = "${var.asg_max_size}"
+  health_check_type    = "ELB"
+  vpc_zone_identifier  = ["${var.subnet_ids}"]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_cloudwatch_log_group" "dispute_tools_lg" {
+  name              = "${aws_ecs_cluster.dispute_tools.name}_lg"
+  retention_in_days = "${var.log_retention_in_days}"
+}
+
 data "template_file" "container_definitions" {
   template = "${file("${path.module}/container-definitions.json")}"
 
   vars {
-    environment  = "${var.environment}"
-    image_name   = "${var.image_name}"
-    sso_endpoint = "${var.sso_endpoint}"
-    sso_secret   = "${var.sso_secret}"
-    jwt_secret   = "${var.jwt_secret}"
-    cookie_name  = "${var.cookie_name}"
+    container_name = "dispute_tools_${var.environment}"
+    environment    = "${var.environment}"
+    image_name     = "${var.image_name}"
+    sso_endpoint   = "${var.sso_endpoint}"
+    sso_secret     = "${var.sso_secret}"
+    jwt_secret     = "${var.jwt_secret}"
+    cookie_name    = "${var.cookie_name}"
 
     contact_email        = "${var.contact_email}"
     sender_email         = "${var.sender_email}"
@@ -235,6 +310,7 @@ data "template_file" "container_definitions" {
     aws_access_id     = "${aws_iam_access_key.disputes_uploader.id}"
     aws_access_secret = "${aws_iam_access_key.disputes_uploader.secret}"
     aws_region        = "${aws_s3_bucket.disputes.region}"
+    aws_bucket_name   = "dispute-tools-uploads-${var.environment}"
 
     loggly_api_key = "${var.loggly_api_key}"
 
@@ -254,6 +330,8 @@ data "template_file" "container_definitions" {
     discourse_api_key      = "${var.discourse_api_key}"
     discourse_api_username = "${var.discourse_api_username}"
     discourse_base_url     = "${var.discourse_base_url}"
+
+    log_group = "${aws_ecs_cluster.dispute_tools.name}_lg"
   }
 }
 
@@ -265,20 +343,15 @@ resource "aws_ecs_task_definition" "dispute_tools" {
   family                = "dispute_tools"
   execution_role_arn    = "${data.aws_iam_role.exec_role.arn}"
   container_definitions = "${data.template_file.container_definitions.rendered}"
-
-  network_mode             = "awsvpc"
-  cpu                      = "256"
-  memory                   = "512"
-  requires_compatibilities = ["FARGATE"]
 }
 
 /*
  * Outputs
  */
-output "alb_dns_name" {
-  value = "${aws_alb.alb_dispute_tools.dns_name}"
+output "lb_dns_name" {
+  value = "${aws_lb.lb_dispute_tools.dns_name}"
 }
 
-output "alb_zone_id" {
-  value = "${aws_alb.alb_dispute_tools.zone_id}"
+output "lb_zone_id" {
+  value = "${aws_lb.lb_dispute_tools.zone_id}"
 }
