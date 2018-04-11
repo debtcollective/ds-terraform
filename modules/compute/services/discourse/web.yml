@@ -43,3 +43,10 @@ hooks:
           - git clone https://github.com/angusmcleod/discourse-events.git
           - git clone https://github.com/angusmcleod/discourse-locations.git
           - git clone https://github.com/debtcollective/discourse-theme.git
+
+    # Make backups work with RDS
+    - exec:
+        cd: $home
+        cmd:
+          - apt-get -y install postgresql-9.6
+          - ln -s -f /usr/lib/postgresql/9.6/bin/pg_dump /usr/bin/pg_dump

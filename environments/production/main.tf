@@ -53,6 +53,7 @@ variable "tools_contact_email" {
 
 variable "tools_image_name" {
   description = "Full repository URI reference to image name to deploy"
+  default     = "debtcollective/dispute-tools:latest"
 }
 
 variable "tools_discourse_api_username" {
@@ -192,12 +193,13 @@ module "mediawiki" {
 }
 
 module "dispute_tools" {
-  source          = "./modules/compute/services/dispute-tools"
-  environment     = "${var.environment}"
-  vpc_id          = "${module.vpc.id}"
-  subnets         = "${module.vpc.public_subnet_ids}"
-  subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
-  security_groups = "${module.vpc.ec2_security_group_id}"
+  source              = "./modules/compute/services/dispute-tools"
+  environment         = "${var.environment}"
+  vpc_id              = "${module.vpc.id}"
+  subnet_ids          = "${module.vpc.public_subnet_ids}"
+  ec2_security_groups = "${module.vpc.ec2_security_group_id}"
+  elb_security_groups = "${module.vpc.elb_security_group_id}"
+  key_name            = "development-tdc"
 
   sso_endpoint = "https://community.debtsyndicate.org/sso/sso_provider"
   sso_secret   = "${var.sso_secret}"
@@ -258,8 +260,8 @@ resource "aws_route53_record" "dispute_tools" {
   type    = "A"
 
   alias {
-    name                   = "${module.dispute_tools.alb_dns_name}"
-    zone_id                = "${module.dispute_tools.alb_zone_id}"
+    name                   = "${module.dispute_tools.lb_dns_name}"
+    zone_id                = "${module.dispute_tools.lb_zone_id}"
     evaluate_target_health = true
   }
 }
