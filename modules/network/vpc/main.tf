@@ -279,6 +279,13 @@ resource "aws_security_group" "rds" {
     security_groups = ["${aws_security_group.ec2.id}"]
   }
 
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = ["${aws_security_group.ec2.id}"]
+  }
+
   # outbound internet access
   egress {
     from_port   = 0
