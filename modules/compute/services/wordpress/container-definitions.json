@@ -1,0 +1,90 @@
+[
+  {
+    "image": "${image_name}",
+    "name": "${container_name}",
+    "memoryReservation": 256,
+    "portMappings": [
+      {
+        "containerPort": 80
+      }
+    ],
+    "environment": [
+      {
+        "name": "ENVIRONMENT",
+        "value": "${environment}"
+      },
+      {
+        "name": "WORDPRESS_DB_HOST",
+        "value": "${wordpress_db_host}"
+      },
+      {
+        "name": "WORDPRESS_DB_USER",
+        "value": "${wordpress_db_user}"
+      },
+      {
+        "name": "WORDPRESS_DB_PASSWORD",
+        "value": "${wordpress_db_password}"
+      },
+      {
+        "name": "WORDPRESS_DB_NAME",
+        "value": "${wordpress_db_name}"
+      },
+      {
+        "name": "WORDPRESS_AUTH_KEY",
+        "value": "${wordpress_auth_key}"
+      },
+      {
+        "name": "WORDPRESS_SECURE_AUTH_KEY",
+        "value": "${wordpress_secure_auth_key}"
+      },
+      {
+        "name": "WORDPRESS_LOGGED_IN_KEY",
+        "value": "${wordpress_logged_in_key}"
+      },
+      {
+        "name": "WORDPRESS_NONCE_KEY",
+        "value": "${wordpress_nonce_key}"
+      },
+      {
+        "name": "WORDPRESS_AUTH_SALT",
+        "value": "${wordpress_auth_salt}"
+      },
+      {
+        "name": "WORDPRESS_SECURE_AUTH_SALT",
+        "value": "${wordpress_secure_auth_salt}"
+      },
+      {
+        "name": "WORDPRESS_LOGGED_IN_SALT",
+        "value": "${wordpress_logged_in_salt}"
+      },
+      {
+        "name": "WORDPRESS_NONCE_SALT",
+        "value": "${wordpress_nonce_salt}"
+      },
+      {
+        "name": "WORDPRESS_SMTP_HOST",
+        "value": "${wordpress_smtp_host}"
+      },
+      {
+        "name": "WORDPRESS_SMTP_PORT",
+        "value": "${wordpress_smtp_port}"
+      },
+      {
+        "name": "WORDPRESS_SMTP_USERNAME",
+        "value": "${wordpress_smtp_username}"
+      },
+      {
+        "name": "WORDPRESS_SMTP_PASSWORD",
+        "value": "${wordpress_smtp_password}"
+      },
+      {
+        "name": "WORDPRESS_SMTP_FROM",
+        "value": "${wordpress_smtp_from}"
+      },
+      {
+        "name": "WORDPRESS_SMTP_FROM_NAME",
+        "value": "${wordpress_smtp_from_name}"
+      }
+    ]
+  }
+]
