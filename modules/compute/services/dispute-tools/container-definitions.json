@@ -30,6 +30,10 @@
         "value": "${environment}"
       },
       {
+        "name": "SITE_URL",
+        "value": "${site_url}"
+      },
+      {
         "name": "EMAIL_CONTACT",
         "value": "${contact_email}"
       },
@@ -64,6 +68,14 @@
       {
         "name": "LOGGLY_KEY",
         "value": "${loggly_api_key}"
+      },
+      {
+        "name": "STATIC_ASSETS_BUCKET_URL",
+        "value": "${static_assets_bucket_url}"
+      },
+      {
+        "name": "SENTRY_ENDPOINT",
+        "value": "${sentry_endpoint}"
       },
       {
         "name": "STRIPE_PRIVATE",
@@ -106,7 +118,7 @@
         "value": "${db_pool_max}"
       },
       {
-        "name": "DISCOURSE_BASE_URL",
+        "name": "DISCOURSE_API_BASE_URL",
         "value": "${discourse_base_url}"
       },
       {
@@ -117,14 +129,6 @@
         "name": "DISCOURSE_API_USERNAME",
         "value": "${discourse_api_username}"
       }
-    ],
-    "logConfiguration": {
-      "logDriver": "awslogs",
-      "options": {
-        "awslogs-group" : "${log_group}",
-        "awslogs-region": "${aws_region}",
-        "awslogs-stream-prefix": "${container_name}"
-      }
-    }
+    ]
   }
 ]

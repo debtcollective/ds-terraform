@@ -72,9 +72,9 @@ variable "discourse_smtp_user" {}
 variable "discourse_smtp_pass" {}
 
 # Mediawiki
-
-variable "mediawiki_smtp_user" {}
-variable "mediawiki_smtp_pass" {}
+variable "mediawiki" {
+  default = {}
+}
 
 /*
  * Remote State
@@ -170,6 +170,7 @@ module "discourse" {
   discourse_db_name     = "discourse_${var.environment}"
   discourse_db_username = "${var.db_username}"
   discourse_db_password = "${var.db_password}"
+  discourse_sso_secret  = "${var.sso_secret}"
 
   key_name        = "${aws_key_pair.development.key_name}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
@@ -182,8 +183,8 @@ module "mediawiki" {
 
   smtp_host = "${var.smtp_host}"
   smtp_port = "${var.smtp_port}"
-  smtp_user = "${var.mediawiki_smtp_user}"
-  smtp_pass = "${var.mediawiki_smtp_pass}"
+  smtp_user = "${var.mediawiki["smtp_user"]}"
+  smtp_pass = "${var.mediawiki["smtp_pass"]}"
 
   domain = "wiki.debtsyndicate.org"
 
@@ -201,7 +202,8 @@ module "dispute_tools" {
   elb_security_groups = "${module.vpc.elb_security_group_id}"
   key_name            = "development-tdc"
 
-  sso_endpoint = "https://community.debtsyndicate.org/sso/sso_provider"
+  sso_endpoint = "https://community.debtsyndicate.org/session/sso_provider"
+  site_url     = "https://tools.debtsyndicate.org"
   sso_secret   = "${var.sso_secret}"
   jwt_secret   = "${var.tools_jwt_secret}"
   cookie_name  = "${var.tools_cookie_name}${var.environment}__"
@@ -221,6 +223,8 @@ module "dispute_tools" {
   stripe_publishable = "${var.tools_stripe_publishable}"
 
   google_maps_api_key = "${var.tools_gmaps_api_key}"
+
+  sentry_endpoint = ""
 
   db_connection_string = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/dispute_tools_${var.environment}"
   db_pool_min          = "${var.tools_db_pool_min}"

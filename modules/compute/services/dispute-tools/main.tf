@@ -118,6 +118,19 @@ variable "discourse_api_username" {
   description = "Discourse API username to go with key"
 }
 
+variable "site_url" {
+  description = "URL where the application is hosted"
+}
+
+variable "sentry_endpoint" {
+  description = "Sentry DNS for error reporting"
+}
+
+variable "static_assets_bucket_url" {
+  description = "Debtcollective static assets bucket url"
+  default     = "https://s3.amazonaws.com/tds-static"
+}
+
 variable "log_retention_in_days" {
   description = "Cloudwatch logs retention"
   default     = 3
@@ -200,6 +213,10 @@ resource "aws_lb_target_group" "dispute_tools" {
   protocol    = "HTTP"
   vpc_id      = "${var.vpc_id}"
 
+  health_check {
+    path = "/health-check"
+  }
+
   lifecycle {
     create_before_destroy = true
   }
@@ -231,7 +248,7 @@ resource "aws_lb_listener" "dispute_tools_https" {
 
 // ECS service and task
 data "aws_iam_role" "ecs_instance_role" {
-  name = "ecs-instance-role"
+  name = "ecs-instance-role-${var.environment}"
 }
 
 resource "aws_ecs_service" "dispute_tools" {
@@ -296,6 +313,7 @@ data "template_file" "container_definitions" {
     sso_secret     = "${var.sso_secret}"
     jwt_secret     = "${var.jwt_secret}"
     cookie_name    = "${var.cookie_name}"
+    site_url       = "${var.site_url}"
 
     contact_email        = "${var.contact_email}"
     sender_email         = "${var.sender_email}"
@@ -330,6 +348,10 @@ data "template_file" "container_definitions" {
     discourse_api_key      = "${var.discourse_api_key}"
     discourse_api_username = "${var.discourse_api_username}"
     discourse_base_url     = "${var.discourse_base_url}"
+
+    sentry_endpoint = "${var.sentry_endpoint}"
+
+    static_assets_bucket_url = "${var.static_assets_bucket_url}"
 
     log_group = "${aws_ecs_cluster.dispute_tools.name}_lg"
   }
