@@ -1,14 +1,13 @@
 [
   {
-    "memory": 300,
+    "image": "${image_name}",
+    "name": "${container_name}",
+    "memoryReservation": 256,
     "portMappings": [
       {
-        "hostPort": 80,
-        "containerPort": 80
+        "containerPort": 8080
       }
     ],
-    "networkMode": "awsvpc",
-    "command": [],
     "environment": [
       {
         "name": "SSO_ENDPOINT",
@@ -29,6 +28,10 @@
       {
         "name": "NODE_ENV",
         "value": "${environment}"
+      },
+      {
+        "name": "SITE_URL",
+        "value": "${site_url}"
       },
       {
         "name": "EMAIL_CONTACT",
@@ -67,6 +70,14 @@
         "value": "${loggly_api_key}"
       },
       {
+        "name": "STATIC_ASSETS_BUCKET_URL",
+        "value": "${static_assets_bucket_url}"
+      },
+      {
+        "name": "SENTRY_ENDPOINT",
+        "value": "${sentry_endpoint}"
+      },
+      {
         "name": "STRIPE_PRIVATE",
         "value": "${stripe_private}"
       },
@@ -80,7 +91,7 @@
       },
       {
         "name": "AWS_UPLOAD_BUCKET",
-        "value": "tds-tools-${environment}"
+        "value": "${aws_bucket_name}"
       },
       {
         "name": "AWS_ACCESS_KEY_ID",
@@ -107,7 +118,7 @@
         "value": "${db_pool_max}"
       },
       {
-        "name": "DISCOURSE_BASE_URL",
+        "name": "DISCOURSE_API_BASE_URL",
         "value": "${discourse_base_url}"
       },
       {
@@ -146,8 +157,6 @@
         "name": "DOE_DISCLOSURE_ZIP",
         "value": "${doe_disclosure_zip}"
       }
-    ],
-    "image": "${image_name}",
-    "name": "tds-dispute-tools"
+    ]
   }
 ]

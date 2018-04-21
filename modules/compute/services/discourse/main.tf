@@ -64,6 +64,10 @@ variable "discourse_letsencrypt_account_email" {
   default     = "orlando@hashlabs.com"
 }
 
+variable "discourse_sso_secret" {
+  description = "SSO secret for Discourse"
+}
+
 variable "key_name" {
   description = "SSH Key Pair to be assigned to the instance"
 }
@@ -79,6 +83,11 @@ variable "security_groups" {
 variable "instance_type" {
   description = "EC2 instance type"
   default     = "t2.small"
+}
+
+variable "volume_size" {
+  description = "EBS block size"
+  default     = 25
 }
 
 /*
@@ -130,6 +139,14 @@ data "template_file" "discourse" {
   }
 }
 
+data "template_file" "discourse_settings" {
+  template = "${file("${path.module}/settings.yml")}"
+
+  vars {
+    sso_secret = "${var.discourse_sso_secret}"
+  }
+}
+
 resource "aws_instance" "discourse" {
   instance_type          = "${var.instance_type}"
   key_name               = "${var.key_name}"
@@ -145,7 +162,7 @@ resource "aws_instance" "discourse" {
   }
 
   root_block_device {
-    volume_size           = 12
+    volume_size           = "${var.volume_size}"
     volume_type           = "gp2"
     delete_on_termination = false
   }
@@ -154,10 +171,26 @@ resource "aws_instance" "discourse" {
     create = "30m"
   }
 
+  lifecycle {
+    ignore_changes = ["user_data"]
+  }
+
   // Install steps
   provisioner "file" {
     content     = "${data.template_file.discourse.rendered}"
     destination = "~/web.yml"
+
+    connection {
+      user        = "ubuntu"
+      port        = "12345"
+      timeout     = "1m"
+      private_key = "${file("~/.ssh/id_rsa")}"
+    }
+  }
+
+  provisioner "file" {
+    content     = "${data.template_file.discourse_settings.rendered}"
+    destination = "~/settings.yml"
 
     connection {
       user        = "ubuntu"
@@ -175,6 +208,19 @@ resource "aws_instance" "discourse" {
           -o Dpkg::Options::="--force-confdef" \
           -o Dpkg::Options::="--force-confold" \
           --assume-yes
+      BASH
+      ,
+
+      // Enable swap
+      <<-BASH
+        sudo fallocate -l 2G /swapfile
+        ls -lh /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
+        echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+        echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+        echo 'vm.vfs_cache_pressure=50' | sudo tee -a /etc/sysctl.conf
       BASH
       ,
 
@@ -196,6 +242,7 @@ resource "aws_instance" "discourse" {
         sudo chown ubuntu.ubuntu /opt/discourse
         git clone https://github.com/discourse/discourse_docker.git /opt/discourse
         mv ~/web.yml /opt/discourse/containers/web.yml
+        mv ~/settings.yml /opt/discourse/settings.yml
       BASH
       ,
 
@@ -210,6 +257,13 @@ resource "aws_instance" "discourse" {
       // Add ubuntu to the docker user group
       <<-BASH
         sudo usermod -aG docker $${USER}
+      BASH
+      ,
+
+      // Import config in running container
+      <<-BASH
+        docker cp /opt/discourse/settings.yml $(docker ps -q):/var/www/discourse
+        docker exec -w /var/www/discourse $(docker ps -q) bash -c $'rake site_settings:import < settings.yml'
       BASH
       ,
     ]

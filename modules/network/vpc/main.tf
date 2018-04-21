@@ -228,13 +228,6 @@ resource "aws_security_group" "ec2" {
     security_groups = ["${aws_security_group.elb.id}"]
   }
 
-  ingress {
-    from_port       = 32768
-    to_port         = 61000
-    protocol        = "tcp"
-    security_groups = ["${aws_security_group.elb.id}"]
-  }
-
   # NRPE & SNMP for Security Monitoring
   ingress {
     from_port   = 5666
@@ -282,6 +275,13 @@ resource "aws_security_group" "rds" {
   ingress {
     from_port       = 5432
     to_port         = 5432
+    protocol        = "tcp"
+    security_groups = ["${aws_security_group.ec2.id}"]
+  }
+
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
     protocol        = "tcp"
     security_groups = ["${aws_security_group.ec2.id}"]
   }
