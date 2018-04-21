@@ -118,6 +118,14 @@ variable "discourse_api_username" {
   description = "Discourse API username to go with key"
 }
 
+variable "doe_disclosure_representatives" {}
+variable "doe_disclosure_phones" {}
+variable "doe_disclosure_relationship" {}
+variable "doe_disclosure_address" {}
+variable "doe_disclosure_city" {}
+variable "doe_disclosure_state" {}
+variable "doe_disclosure_zip" {}
+
 resource "aws_s3_bucket" "disputes" {
   bucket = "tds-tools-${var.environment}"
   acl    = "private"

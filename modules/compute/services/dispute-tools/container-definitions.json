@@ -117,6 +117,34 @@
       {
         "name": "DISCOURSE_API_USERNAME",
         "value": "${discourse_api_username}"
+      },
+      {
+        "name": "DOE_DISCLOSURE_REPRESENTATIVES",
+        "value": "${doe_disclosure_representatives}"
+      },
+      {
+        "name": "DOE_DISCLOSURE_PHONES",
+        "value": "${doe_disclosure_phones}"
+      },
+      {
+        "name": "DOE_DISCLOSURE_RELATIONSHIP",
+        "value": "${doe_disclosure_relationship}"
+      },
+      {
+        "name": "DOE_DISCLOSURE_ADDRESS",
+        "value": "${doe_disclosure_address}"
+      },
+      {
+        "name": "DOE_DISCLOSURE_CITY",
+        "value": "${doe_disclosure_city}"
+      },
+      {
+        "name": "DOE_DISCLOSURE_STATE",
+        "value": "${doe_disclosure_state}"
+      },
+      {
+        "name": "DOE_DISCLOSURE_ZIP",
+        "value": "${doe_disclosure_zip}"
       }
     ],
     "image": "${image_name}",
