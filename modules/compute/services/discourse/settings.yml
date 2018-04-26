@@ -1,10 +1,10 @@
 ---
 default_locale: en
-title: The Debt Syndicate
+title: The Debt Collective
 site_description: A place to organize to fight debt
 contact_email: orlando@hashlabs.com
-contact_url: https://debtsyndicate.org
-notification_email: noreply@debtsyndicate.org
+contact_url: https://debtcollective.org
+notification_email: noreply@debtcollective.org
 site_contact_username: system
 logo_url: "/images/d-logo-sketch.png"
 logo_small_url: "/images/d-logo-sketch-small.png"
@@ -16,7 +16,7 @@ apple_touch_icon_url: "/images/default-apple-touch-icon.png"
 default_opengraph_image_url: ''
 twitter_summary_large_image_url: ''
 exclude_rel_nofollow_domains: ''
-company_short_name: ''
+company_short_name: 'The Debt Collective'
 company_full_name: ''
 company_domain: ''
 allow_user_locale: 'false'
@@ -111,7 +111,7 @@ redirect_users_to_top_page: 'true'
 show_email_on_profile: 'false'
 prioritize_username_in_ux: 'true'
 email_token_valid_hours: '48'
-purge_unactivated_users_grace_period_days: '14'
+purge_unactivated_users_grace_period_days: '30'
 public_user_custom_fields: ''
 staff_user_custom_fields: ''
 enable_user_directory: 'true'
@@ -208,7 +208,7 @@ digest_posts: '3'
 digest_other_topics: '5'
 suppress_digest_email_after_days: '365'
 digest_suppress_categories: ''
-disable_digest_emails: 'false'
+disable_digest_emails: 'true'
 email_accent_bg_color: "#2F70AC"
 email_accent_fg_color: "#FFFFFF"
 email_link_color: "#006699"
@@ -234,7 +234,7 @@ email_in: 'false'
 email_in_min_trust: '2'
 email_prefix: ''
 email_site_title: ''
-disable_emails: 'false'
+disable_emails: 'true'
 strip_images_from_short_emails: 'true'
 short_email_length: '2800'
 display_name_on_email_from: 'true'
@@ -344,7 +344,9 @@ blacklist_ip_blocks: ''
 whitelist_internal_hosts: ''
 allowed_iframes: https://www.google.com/maps/embed?|https://www.openstreetmap.org/export/embed.html?|https://calendar.google.com/calendar/embed?
 whitelisted_crawler_user_agents: ''
-blacklisted_crawler_user_agents: bingbot
+blacklisted_crawler_user_agents: ''
+slow_down_crawler_user_agents: bingbot
+slow_down_crawler_rate: '60'
 enable_flash_video_onebox: 'false'
 post_onebox_maxlength: '500'
 onebox_domains_blacklist: ''
@@ -412,6 +414,7 @@ top_topics_formula_log_views_multiplier: '2'
 top_topics_formula_first_post_likes_multiplier: '0.5'
 top_topics_formula_least_likes_per_post_multiplier: '3'
 rebake_old_posts_count: '100'
+enable_safe_mode: 'false'
 tos_url: ''
 privacy_policy_url: ''
 faq_url: ''
