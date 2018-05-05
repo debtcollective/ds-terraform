@@ -338,7 +338,7 @@ same_site_cookies: Lax
 enable_escaped_fragments: 'true'
 allow_index_in_robots_txt: 'true'
 allow_moderators_to_create_categories: 'false'
-cors_origins: ''
+cors_origins: 'https://tools.debtsyndicate.org|https://wiki.debtsyndicate.org|https://media.debtsyndicate.org|https://debtsyndicate.org'
 use_admin_ip_whitelist: 'false'
 blacklist_ip_blocks: ''
 whitelist_internal_hosts: ''

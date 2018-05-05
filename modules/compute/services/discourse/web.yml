@@ -24,6 +24,7 @@ env:
   DISCOURSE_DB_PORT: "${discourse_db_port}"
   DISCOURSE_HOSTNAME: "${discourse_hostname}"
   LETSENCRYPT_ACCOUNT_EMAIL: "${discourse_letsencrypt_account_email}"
+  DISCOURSE_ENABLED_CORS: true
 
 volumes:
   - volume:
