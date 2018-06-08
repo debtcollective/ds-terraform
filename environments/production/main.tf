@@ -76,11 +76,6 @@ variable "mediawiki" {
   default = {}
 }
 
-# Wordpress
-variable "wordpress" {
-  default = {}
-}
-
 /*
  * Remote State
  */
@@ -144,38 +139,6 @@ resource "aws_db_instance" "postgres" {
   }
 }
 
-// Mysql Database
-resource "aws_db_instance" "mysql" {
-  identifier        = "mysql-${var.environment}"
-  allocated_storage = "20"
-  engine            = "mysql"
-  engine_version    = "5.7"
-  instance_class    = "db.t2.micro"
-  name              = "wordpress_${var.environment}"
-  username          = "${var.wordpress["db_user"]}"
-  password          = "${var.wordpress["db_password"]}"
-
-  backup_window           = "22:00-23:59"
-  maintenance_window      = "sat:20:00-sat:21:00"
-  backup_retention_period = "7"
-
-  vpc_security_group_ids = ["${module.vpc.rds_security_group_id}"]
-
-  db_subnet_group_name = "${aws_db_subnet_group.postgres_sg.name}"
-  parameter_group_name = "default.mysql5.7"
-
-  multi_az                  = false
-  storage_type              = "gp2"
-  skip_final_snapshot       = false
-  final_snapshot_identifier = "mysql-${var.environment}"
-
-  tags {
-    Terraform   = true
-    Name        = "mysql-${var.environment}"
-    Environment = "${var.environment}"
-  }
-}
-
 // ECS instance_profile and iam_role
 module "ecs_role" {
   source      = "./modules/utils/ecs_role"
@@ -227,35 +190,6 @@ module "mediawiki" {
   key_name        = "${aws_key_pair.development.key_name}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
   security_groups = "${module.vpc.ec2_security_group_id}"
-}
-
-module "wordpress" {
-  source              = "./modules/compute/services/wordpress"
-  environment         = "${var.environment}"
-  vpc_id              = "${module.vpc.id}"
-  subnet_ids          = "${module.vpc.public_subnet_ids}"
-  ec2_security_groups = "${module.vpc.ec2_security_group_id}"
-  elb_security_groups = "${module.vpc.elb_security_group_id}"
-  key_name            = "development-tdc"
-
-  db_host          = "${aws_db_instance.mysql.address}:3306"
-  db_user          = "${var.wordpress["db_user"]}"
-  db_password      = "${var.wordpress["db_password"]}"
-  db_name          = "wordpress_${var.environment}"
-  auth_key         = "${var.wordpress["auth_key"]}"
-  secure_auth_key  = "${var.wordpress["secure_auth_key"]}"
-  logged_in_key    = "${var.wordpress["logged_in_key"]}"
-  nonce_key        = "${var.wordpress["nonce_key"]}"
-  auth_salt        = "${var.wordpress["auth_salt"]}"
-  secure_auth_salt = "${var.wordpress["secure_auth_salt"]}"
-  logged_in_salt   = "${var.wordpress["logged_in_salt"]}"
-  nonce_salt       = "${var.wordpress["nonce_salt"]}"
-  smtp_host        = "${var.wordpress["smtp_host"]}"
-  smtp_port        = "${var.wordpress["smtp_port"]}"
-  smtp_username    = "${var.wordpress["smtp_username"]}"
-  smtp_password    = "${var.wordpress["smtp_password"]}"
-  smtp_from        = "${var.wordpress["smtp_from"]}"
-  smtp_from_name   = "${var.wordpress["smtp_from_name"]}"
 }
 
 module "dispute_tools" {
@@ -321,18 +255,6 @@ resource "aws_route53_record" "mediawiki" {
   type    = "A"
   ttl     = 300
   records = ["${module.mediawiki.public_ip}"]
-}
-
-resource "aws_route53_record" "wordpress" {
-  zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "media"
-  type    = "A"
-
-  alias {
-    name                   = "${module.wordpress.lb_dns_name}"
-    zone_id                = "${module.wordpress.lb_zone_id}"
-    evaluate_target_health = true
-  }
 }
 
 resource "aws_route53_record" "dispute_tools" {
