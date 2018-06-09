@@ -118,6 +118,14 @@ variable "discourse_api_username" {
   description = "Discourse API username to go with key"
 }
 
+variable "doe_disclosure_representatives" {}
+variable "doe_disclosure_phones" {}
+variable "doe_disclosure_relationship" {}
+variable "doe_disclosure_address" {}
+variable "doe_disclosure_city" {}
+variable "doe_disclosure_state" {}
+variable "doe_disclosure_zip" {}
+
 variable "site_url" {
   description = "URL where the application is hosted"
 }
