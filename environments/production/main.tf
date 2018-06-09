@@ -243,13 +243,13 @@ module "dispute_tools" {
   discourse_api_key      = "${var.tools_discourse_api_key}"
   discourse_api_username = "${var.tools_discourse_api_username}"
 
-  tools_doe_disclosure_representatives = "${var.doe_disclosure_representatives}"
-  tools_doe_disclosure_phones          = "${var.doe_disclosure_phones}"
-  tools_doe_disclosure_relationship    = "${var.doe_disclosure_relationship}"
-  tools_doe_disclosure_address         = "${var.doe_disclosure_address}"
-  tools_doe_disclosure_city            = "${var.doe_disclosure_city}"
-  tools_doe_disclosure_state           = "${var.doe_disclosure_state}"
-  tools_doe_disclosure_zip             = "${var.doe_disclosure_zip}"
+  doe_disclosure_representatives = "${var.tools_doe_disclosure_representatives}"
+  doe_disclosure_phones          = "${var.tools_doe_disclosure_phones}"
+  doe_disclosure_relationship    = "${var.tools_doe_disclosure_relationship}"
+  doe_disclosure_address         = "${var.tools_doe_disclosure_address}"
+  doe_disclosure_city            = "${var.tools_doe_disclosure_city}"
+  doe_disclosure_state           = "${var.tools_doe_disclosure_state}"
+  doe_disclosure_zip             = "${var.tools_doe_disclosure_zip}"
 }
 
 // Route 53

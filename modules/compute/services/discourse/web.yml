@@ -24,7 +24,7 @@ env:
   DISCOURSE_DB_PORT: "${discourse_db_port}"
   DISCOURSE_HOSTNAME: "${discourse_hostname}"
   LETSENCRYPT_ACCOUNT_EMAIL: "${discourse_letsencrypt_account_email}"
-  DISCOURSE_ENABLED_CORS: true
+  DISCOURSE_ENABLE_CORS: true
 
 volumes:
   - volume:
@@ -52,5 +52,5 @@ hooks:
     - exec:
         cd: $home
         cmd:
-          - apt-get -y install postgresql-9.6
+          - apt-get update && apt-get -y install postgresql-client-9.6
           - ln -s -f /usr/lib/postgresql/9.6/bin/pg_dump /usr/bin/pg_dump
