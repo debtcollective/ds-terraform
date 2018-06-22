@@ -6,8 +6,8 @@ contact_email: orlando@hashlabs.com
 contact_url: https://debtcollective.org
 notification_email: noreply@debtcollective.org
 site_contact_username: system
-logo_url: "/images/d-logo-sketch.png"
-logo_small_url: "/images/d-logo-sketch-small.png"
+logo_url: "//s3.amazonaws.com/tds-static/img/debtcollective/0.0.1/DC-logo_FULL_WHITE%403x.png"
+logo_small_url: "//s3.amazonaws.com/tds-static/img/debtcollective/0.0.1/DC-logo_FULL_WHITE%403x.png"
 digest_logo_url: ''
 mobile_logo_url: ''
 large_icon_url: ''
@@ -333,7 +333,7 @@ tl3_requires_likes_given: '30'
 tl3_requires_likes_received: '20'
 tl3_links_no_follow: 'false'
 trusted_users_can_edit_others: 'true'
-force_https: 'false'
+force_https: 'true'
 same_site_cookies: Lax
 enable_escaped_fragments: 'true'
 allow_index_in_robots_txt: 'true'
@@ -342,7 +342,7 @@ cors_origins: 'https://tools.debtsyndicate.org|https://wiki.debtsyndicate.org|ht
 use_admin_ip_whitelist: 'false'
 blacklist_ip_blocks: ''
 whitelist_internal_hosts: ''
-allowed_iframes: https://www.google.com/maps/embed?|https://www.openstreetmap.org/export/embed.html?|https://calendar.google.com/calendar/embed?
+allowed_iframes: https://www.google.com/maps/embed?|https://www.openstreetmap.org/export/embed.html?|https://calendar.google.com/calendar/embed?|https://codepen.io/
 whitelisted_crawler_user_agents: ''
 blacklisted_crawler_user_agents: ''
 slow_down_crawler_user_agents: bingbot
@@ -540,6 +540,7 @@ discourse_narrative_bot_welcome_post_delay: '0'
 discourse_narrative_bot_ignored_usernames: discourse
 discourse_narrative_bot_disable_public_replies: 'false'
 details_enabled: 'true'
+debtcollective_migratepassword_enabled: 'true'
 location_input_fields_enabled: 'false'
 location_input_fields: street|postalcode|city|countrycode
 location_geocoding: optional
@@ -564,10 +565,10 @@ location_map_center_lon: '5'
 location_map_max_topics: '100'
 location_layouts_map_search_enabled: 'false'
 location_layouts_map_show_avatar: 'false'
-events_enabled: 'false'
-events_agenda_enabled: 'false'
-events_calendar_enabled: 'false'
-events_add_to_calendar: 'false'
+events_enabled: 'true'
+events_agenda_enabled: 'true'
+events_calendar_enabled: 'true'
+events_add_to_calendar: 'true'
 events_event_label_icon: calendar
 events_event_label_no_text: 'false'
 events_event_label_format: MMMM Do, HH:mm
