@@ -9,12 +9,12 @@ provider "aws" {
  * Variables
  */
 variable "environment" {
-  default = "production"
+  default = "staging"
 }
 
 # Shared
-
 variable "db_username" {}
+
 variable "db_password" {}
 variable "tools_port" {}
 variable "smtp_host" {}
@@ -22,8 +22,8 @@ variable "smtp_port" {}
 variable "sso_secret" {}
 
 # Dispute tools
-
 variable "tools_smtp_pass" {}
+
 variable "tools_smtp_user" {}
 variable "tools_gmaps_api_key" {}
 
@@ -61,8 +61,8 @@ variable "tools_discourse_api_username" {
 }
 
 variable "tools_discourse_base_url" {}
-variable "tools_discourse_api_key" {}
 
+variable "tools_discourse_api_key" {}
 variable "tools_doe_disclosure_representatives" {}
 variable "tools_doe_disclosure_phones" {}
 variable "tools_doe_disclosure_relationship" {}
@@ -86,12 +86,12 @@ variable "mediawiki" {
  */
 terraform {
   backend "s3" {
-    bucket = "debtsyndicate-terraform"
+    bucket = "tdc-terraform"
     region = "us-east-1"
 
     // This is the state key, make sure you are using the right environment on line 12, otherwise you may overwrite other state
     // We cannot use variables at this point
-    key = "production/terraform.tfstate"
+    key = "staging/terraform.tfstate"
   }
 }
 
@@ -151,13 +151,9 @@ module "ecs_role" {
 }
 
 // key_pair for Discourse cluster
-resource "aws_key_pair" "development" {
-  key_name   = "development-tdc"
-  public_key = ""
-
-  lifecycle {
-    prevent_destroy = true
-  }
+resource "aws_key_pair" "ssh" {
+  key_name   = "key_pair_${var.environment}"
+  public_key = "${file("key_pair_${var.environment}.pub")}"
 }
 
 module "discourse" {
@@ -176,23 +172,7 @@ module "discourse" {
   discourse_db_password = "${var.db_password}"
   discourse_sso_secret  = "${var.sso_secret}"
 
-  key_name        = "${aws_key_pair.development.key_name}"
-  subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
-  security_groups = "${module.vpc.ec2_security_group_id}"
-}
-
-module "mediawiki" {
-  source      = "./modules/compute/services/mediawiki"
-  environment = "${var.environment}"
-
-  smtp_host = "${var.smtp_host}"
-  smtp_port = "${var.smtp_port}"
-  smtp_user = "${var.mediawiki["smtp_user"]}"
-  smtp_pass = "${var.mediawiki["smtp_pass"]}"
-
-  domain = "wiki.debtsyndicate.org"
-
-  key_name        = "${aws_key_pair.development.key_name}"
+  key_name        = "${aws_key_pair.ssh.key_name}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
   security_groups = "${module.vpc.ec2_security_group_id}"
 }
@@ -204,10 +184,10 @@ module "dispute_tools" {
   subnet_ids          = "${module.vpc.public_subnet_ids}"
   ec2_security_groups = "${module.vpc.ec2_security_group_id}"
   elb_security_groups = "${module.vpc.elb_security_group_id}"
-  key_name            = "development-tdc"
+  key_name            = "${aws_key_pair.ssh.key_name}"
 
-  sso_endpoint = "https://community.debtsyndicate.org/session/sso_provider"
-  site_url     = "https://tools.debtsyndicate.org"
+  sso_endpoint = "https://${aws_route53_record.discourse.fqdn}/session/sso_provider"
+  site_url     = "https://${aws_route53_record.dispute_tools.fqdn}"
   sso_secret   = "${var.sso_secret}"
   jwt_secret   = "${var.tools_jwt_secret}"
   cookie_name  = "${var.tools_cookie_name}${var.environment}__"
@@ -256,23 +236,15 @@ data "aws_route53_zone" "primary" {
 
 resource "aws_route53_record" "discourse" {
   zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "community"
+  name    = "staging.community"
   type    = "A"
   ttl     = 300
   records = ["${module.discourse.public_ip}"]
 }
 
-resource "aws_route53_record" "mediawiki" {
-  zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "wiki"
-  type    = "A"
-  ttl     = 300
-  records = ["${module.mediawiki.public_ip}"]
-}
-
 resource "aws_route53_record" "dispute_tools" {
   zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "tools"
+  name    = "staging"
   type    = "A"
 
   alias {

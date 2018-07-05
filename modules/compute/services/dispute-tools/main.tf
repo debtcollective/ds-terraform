@@ -170,8 +170,9 @@ variable "asg_max_size" {
 
 // S3 Bucket and permissions
 resource "aws_s3_bucket" "disputes" {
-  bucket = "dispute-tools-uploads-${var.environment}"
-  acl    = "private"
+  bucket        = "dispute-tools-uploads-${var.environment}"
+  acl           = "private"
+  force_destroy = true
 
   tags {
     Terraform   = true
@@ -204,7 +205,7 @@ resource "aws_iam_user_policy" "disputes_uploader_policy" {
 }
 
 // Load balancer
-data "aws_acm_certificate" "debtcollective" {
+data "aws_acm_certificate" "domain" {
   domain   = "${var.acm_certificate_domain}"
   statuses = ["ISSUED"]
 }
@@ -245,7 +246,7 @@ resource "aws_lb_listener" "dispute_tools_https" {
   load_balancer_arn = "${aws_lb.lb_dispute_tools.id}"
   port              = "443"
   protocol          = "HTTPS"
-  certificate_arn   = "${data.aws_acm_certificate.debtcollective.arn}"
+  certificate_arn   = "${data.aws_acm_certificate.domain.arn}"
   ssl_policy        = "ELBSecurityPolicy-2015-05"
 
   default_action {

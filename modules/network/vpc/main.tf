@@ -182,20 +182,13 @@ resource "aws_security_group" "elb" {
 
 # Create a security group for the app servers
 resource "aws_security_group" "ec2" {
-  name        = "ec2_security_group_${var.environment}"
+  name        = "ec2_sg_${var.environment}"
   description = "security group for app servers"
   vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
     from_port   = 12345
     to_port     = 12345
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -228,35 +221,6 @@ resource "aws_security_group" "ec2" {
     security_groups = ["${aws_security_group.elb.id}"]
   }
 
-  # NRPE & SNMP for Security Monitoring
-  ingress {
-    from_port   = 5666
-    to_port     = 5666
-    protocol    = "tcp"
-    cidr_blocks = ["192.99.99.97/32"]
-  }
-
-  ingress {
-    from_port   = 161
-    to_port     = 161
-    protocol    = "tcp"
-    cidr_blocks = ["149.56.84.50/32"]
-  }
-
-  ingress {
-    from_port   = 5666
-    to_port     = 5666
-    protocol    = "udp"
-    cidr_blocks = ["192.99.99.97/32"]
-  }
-
-  ingress {
-    from_port   = 161
-    to_port     = 161
-    protocol    = "udp"
-    cidr_blocks = ["149.56.84.50/32"]
-  }
-
   # outbound internet access
   egress {
     from_port   = 0
@@ -268,7 +232,7 @@ resource "aws_security_group" "ec2" {
 
 # Create a security group for the rds servers
 resource "aws_security_group" "rds" {
-  name        = "rds_security_group_${var.environment}"
+  name        = "rds_sg_${var.environment}"
   description = "security group for databases"
   vpc_id      = "${aws_vpc.default.id}"
 
@@ -297,7 +261,7 @@ resource "aws_security_group" "rds" {
 
 # Create a security group for the redis cluster
 resource "aws_security_group" "redis" {
-  name        = "redis_security_group_${var.environment}"
+  name        = "redis_sg_${var.environment}"
   description = "security group for redis"
   vpc_id      = "${aws_vpc.default.id}"
 

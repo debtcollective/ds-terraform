@@ -202,12 +202,9 @@ resource "aws_instance" "discourse" {
 
   provisioner "remote-exec" {
     inline = [
-      // Update OS
+      // Update
       <<-BASH
-        sudo apt-get update && sudo apt-get dist-upgrade \
-          -o Dpkg::Options::="--force-confdef" \
-          -o Dpkg::Options::="--force-confold" \
-          --assume-yes
+        sudo apt-get update
       BASH
       ,
 

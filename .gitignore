@@ -8,3 +8,5 @@ terraform.*.tfvars
 id_rsa
 config.js
 .DS_Store
+key_pair_*
+!key_pair_*.pub

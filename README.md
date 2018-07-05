@@ -13,16 +13,16 @@ brew install terraform
 
 Then follow these steps to init your environment
 
-1. `cp env.sample .env` and replace variables with valid AWS credentials with permissions we need to create all the infrastructure
-2. `source .env`
-3. `make init`
+1.  `cp env.sample .env` and replace variables with valid AWS credentials with permissions we need to create all the infrastructure
+2.  `source .env`
+3.  `make init`
 
 ## Usage
 
 When you are making a change, follow this loop
 
-1. `make plan` to see your changes in memory
-2. `make apply` to apply changes
+1.  `make plan` to see your changes in memory
+2.  `make apply` to apply changes
 
 `make apply` will also upload the `terraform.tfvars` file (that is
 ignored from the git repository since it has sensible data). When you
@@ -35,11 +35,21 @@ is not commited to git, you will lose your changes (if any)
 
 ### Environments
 
-Each environment has 
+Each environment has its own folder under the `environments` folder.
+
+#### Create a new environment
+
+The easiest way to create a new environment is by copying an existing one
+
+1.  Copy any environment you like to replicate to a new folder and cd there
+1.  Delete ssh keys (`rm key_pair_*`) and create new ones (`ssh-keygen -f key_pair_${env}`)
+1.  Change `Makefile` and `main.tf` environment variable to match the folder name
+1.  Run `make init`
 
 ## How-to
 
 ### Connect to the postgres database from your local instance
+
 RDS databases are only reachable from an instance in the
 ec2_security_group. You can connect to the database using an SSH tunnel
 

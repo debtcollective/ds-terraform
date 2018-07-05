@@ -39,15 +39,16 @@ hooks:
     - exec:
         cd: $home/plugins
         cmd:
-          - mkdir -p plugins
           - git clone https://github.com/discourse/docker_manager.git
+          - git clone https://github.com/discourse/discourse-assign.git
+          - git clone https://github.com/discourse/discourse-staff-notes.git
           - git clone https://github.com/angusmcleod/discourse-events.git
           - git clone https://github.com/angusmcleod/discourse-locations.git
+          - git clone https://github.com/angusmcleod/discourse-custom-wizard.git
           - git clone https://github.com/debtcollective/discourse-debtcollective-theme.git
           - git clone https://github.com/debtcollective/discourse-debtcollective-migratepassword.git
-          - git clone https://github.com/debtcollective/new-user-plugin.git
+          - git clone https://github.com/debtcollective/discourse-debtcollective-wizards.git
           - git clone https://github.com/debtcollective/discourse-utilities.git
-          - git clone https://github.com/debtcollective/discourse-custom-pages.git
 
     # Make backups work with RDS
     - exec:
