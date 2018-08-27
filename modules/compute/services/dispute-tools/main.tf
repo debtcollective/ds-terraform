@@ -300,6 +300,10 @@ resource "aws_autoscaling_group" "dispute_tools_asg" {
   max_size             = "${var.asg_max_size}"
   health_check_type    = "ELB"
   vpc_zone_identifier  = ["${var.subnet_ids}"]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_cloudwatch_log_group" "dispute_tools_lg" {
