@@ -1,5 +1,10 @@
 [
   {
+    "image": "redis:alpine",
+    "name": "${container_name}_redis",
+    "memoryReservation": 128
+  },
+  {
     "image": "${image_name}",
     "name": "${container_name}",
     "memoryReservation": 256,
@@ -8,7 +13,16 @@
         "containerPort": 8080
       }
     ],
+    "links": ["${container_name}_redis:redis"],
     "environment": [
+      {
+        "name": "REDIS_HOST",
+        "value": "redis"
+      },
+      {
+        "name": "REDIS_PORT",
+        "value": "6379"
+      },
       {
         "name": "SSO_ENDPOINT",
         "value": "${sso_endpoint}"

@@ -4,8 +4,8 @@ echo ECS_CLUSTER=${cluster_name} > /etc/ecs/ecs.config
 export ENVIRONMENT=${environment}
 
 # Change SSH Port to 12345
-perl -pi -e 's/^#?Port 22$/Port 12345/' /etc/ssh/sshd_config
-service sshd restart || service ssh restart
+sudo sed -i 's/#Port 22$/Port 12345/' /etc/ssh/sshd_config
+sudo service sshd restart || sudo service ssh restart
 
 # Tools
 sudo yum install htop -y
