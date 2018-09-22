@@ -160,7 +160,7 @@ module "discourse" {
   source      = "./modules/compute/services/discourse"
   environment = "${var.environment}"
 
-  discourse_hostname = "community.debtsyndicate.org"
+  discourse_hostname = "community.${var.environment}.debtsyndicate.org"
 
   discourse_smtp_address   = "${var.smtp_host}"
   discourse_smtp_user_name = "${var.discourse_smtp_user}"
