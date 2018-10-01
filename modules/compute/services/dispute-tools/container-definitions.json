@@ -1,6 +1,6 @@
 [
   {
-    "image": "redis:alpine",
+    "image": "redis:4",
     "name": "${container_name}_redis",
     "memoryReservation": 128
   },

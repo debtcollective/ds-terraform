@@ -7,7 +7,7 @@ variable "environment" {
 
 variable "image_name" {
   description = "Docker image for ECS task"
-  default     = "183550513269.dkr.ecr.us-east-1.amazonaws.com/dispute-tools:latest"
+  default     = "debtcollective/dispute-tools:latest"
 }
 
 variable "subnet_ids" {
