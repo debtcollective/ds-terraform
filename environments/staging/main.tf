@@ -39,6 +39,8 @@ variable "tools_stripe_publishable" {}
 variable "tools_db_pool_min" {}
 variable "tools_db_pool_max" {}
 
+variable "tools_sentry_endpoint" {}
+
 variable "tools_sender_email" {
   default = "admin@debtsyndicate.org"
 }
@@ -208,7 +210,7 @@ module "dispute_tools" {
 
   google_maps_api_key = "${var.tools_gmaps_api_key}"
 
-  sentry_endpoint = ""
+  sentry_endpoint = "${var.tools_sentry_endpoint}"
 
   db_connection_string = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/dispute_tools_${var.environment}"
   db_pool_min          = "${var.tools_db_pool_min}"
