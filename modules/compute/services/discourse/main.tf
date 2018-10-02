@@ -68,6 +68,26 @@ variable "discourse_sso_secret" {
   description = "SSO secret for Discourse"
 }
 
+variable "discourse_reply_by_email_address" {
+  description = "Reply by email address, needs %{reply_key} variable to be in the value"
+}
+
+variable "discourse_pop3_polling_username" {
+  description = "pop3 username for the address used in reply by email"
+}
+
+variable "discourse_pop3_polling_password" {
+  description = "pop3 password for the address used in reply by email"
+}
+
+variable "discourse_pop3_polling_host" {
+  description = "pop3 host for the address used in reply by email"
+}
+
+variable "discourse_pop3_polling_port" {
+  description = "pop3 port for the address used in reply by email"
+}
+
 variable "key_name" {
   description = "SSH Key Pair to be assigned to the instance"
 }
@@ -144,6 +164,12 @@ data "template_file" "discourse_settings" {
 
   vars {
     sso_secret = "${var.discourse_sso_secret}"
+
+    reply_by_email_address = "${var.discourse_reply_by_email_address}"
+    pop3_polling_host      = "${var.discourse_pop3_polling_host}"
+    pop3_polling_port      = "${var.discourse_pop3_polling_port}"
+    pop3_polling_username  = "${var.discourse_pop3_polling_username}"
+    pop3_polling_password  = "${var.discourse_pop3_polling_password}"
   }
 }
 
