@@ -13,8 +13,8 @@ variable "environment" {
 }
 
 # Shared
-variable "db_username" {}
 
+variable "db_username" {}
 variable "db_password" {}
 variable "tools_port" {}
 variable "smtp_host" {}
@@ -22,8 +22,8 @@ variable "smtp_port" {}
 variable "sso_secret" {}
 
 # Dispute tools
-variable "tools_smtp_pass" {}
 
+variable "tools_smtp_pass" {}
 variable "tools_smtp_user" {}
 variable "tools_gmaps_api_key" {}
 
@@ -63,7 +63,6 @@ variable "tools_discourse_api_username" {
 }
 
 variable "tools_discourse_base_url" {}
-
 variable "tools_discourse_api_key" {}
 variable "tools_doe_disclosure_representatives" {}
 variable "tools_doe_disclosure_phones" {}
@@ -74,11 +73,17 @@ variable "tools_doe_disclosure_state" {}
 variable "tools_doe_disclosure_zip" {}
 
 # Discourse
-variable "discourse_smtp_user" {}
 
+variable "discourse_smtp_user" {}
 variable "discourse_smtp_pass" {}
+variable "discourse_reply_by_email_address" {}
+variable "discourse_pop3_polling_username" {}
+variable "discourse_pop3_polling_password" {}
+variable "discourse_pop3_polling_host" {}
+variable "discourse_pop3_polling_port" {}
 
 # Mediawiki
+
 variable "mediawiki" {
   default = {}
 }
@@ -173,6 +178,12 @@ module "discourse" {
   discourse_db_username = "${var.db_username}"
   discourse_db_password = "${var.db_password}"
   discourse_sso_secret  = "${var.sso_secret}"
+
+  discourse_reply_by_email_address = "${var.discourse_reply_by_email_address}"
+  discourse_pop3_polling_username  = "${var.discourse_pop3_polling_username}"
+  discourse_pop3_polling_password  = "${var.discourse_pop3_polling_password}"
+  discourse_pop3_polling_host      = "${var.discourse_pop3_polling_host}"
+  discourse_pop3_polling_port      = "${var.discourse_pop3_polling_port}"
 
   key_name        = "${aws_key_pair.ssh.key_name}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
