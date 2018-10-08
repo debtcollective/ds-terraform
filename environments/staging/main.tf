@@ -16,74 +16,18 @@ variable "environment" {
 
 variable "db_username" {}
 variable "db_password" {}
-variable "tools_port" {}
-variable "smtp_host" {}
-variable "smtp_port" {}
-variable "sso_secret" {}
 
 # Dispute tools
-
-variable "tools_smtp_pass" {}
-variable "tools_smtp_user" {}
-variable "tools_gmaps_api_key" {}
-
-variable "tools_cookie_name" {
-  description = "Will have the environment appended to it to maintain environmental atomicity"
-  default     = "_dispute_tools__"
+variable "dispute_tools" {
+  default = {}
 }
-
-variable "tools_jwt_secret" {}
-variable "tools_loggly_api_key" {}
-variable "tools_stripe_private" {}
-variable "tools_stripe_publishable" {}
-variable "tools_db_pool_min" {}
-variable "tools_db_pool_max" {}
-
-variable "tools_sentry_endpoint" {}
-
-variable "tools_sender_email" {
-  default = "admin@debtsyndicate.org"
-}
-
-variable "tools_disputes_bcc_address" {
-  default = "admin@debtsyndicate.org"
-}
-
-variable "tools_contact_email" {
-  default = "admin@debtsyndicate.org"
-}
-
-variable "tools_image_name" {
-  description = "Full repository URI reference to image name to deploy"
-  default     = "debtcollective/dispute-tools:latest"
-}
-
-variable "tools_discourse_api_username" {
-  default = "system"
-}
-
-variable "tools_discourse_base_url" {}
-variable "tools_discourse_api_key" {}
-variable "tools_doe_disclosure_representatives" {}
-variable "tools_doe_disclosure_phones" {}
-variable "tools_doe_disclosure_relationship" {}
-variable "tools_doe_disclosure_address" {}
-variable "tools_doe_disclosure_city" {}
-variable "tools_doe_disclosure_state" {}
-variable "tools_doe_disclosure_zip" {}
 
 # Discourse
-
-variable "discourse_smtp_user" {}
-variable "discourse_smtp_pass" {}
-variable "discourse_reply_by_email_address" {}
-variable "discourse_pop3_polling_username" {}
-variable "discourse_pop3_polling_password" {}
-variable "discourse_pop3_polling_host" {}
-variable "discourse_pop3_polling_port" {}
+variable "discourse" {
+  default = {}
+}
 
 # Mediawiki
-
 variable "mediawiki" {
   default = {}
 }
@@ -169,21 +113,23 @@ module "discourse" {
 
   discourse_hostname = "community.${var.environment}.debtsyndicate.org"
 
-  discourse_smtp_address   = "${var.smtp_host}"
-  discourse_smtp_user_name = "${var.discourse_smtp_user}"
-  discourse_smtp_password  = "${var.discourse_smtp_pass}"
+  discourse_smtp_address   = "${var.discourse["smtp_host"]}"
+  discourse_smtp_user_name = "${var.discourse["smtp_user"]}"
+  discourse_smtp_password  = "${var.discourse["smtp_pass"]}"
 
   discourse_db_host     = "${aws_db_instance.postgres.address}"
   discourse_db_name     = "discourse_${var.environment}"
   discourse_db_username = "${var.db_username}"
   discourse_db_password = "${var.db_password}"
-  discourse_sso_secret  = "${var.sso_secret}"
+  discourse_sso_secret  = "${var.discourse["sso_secret"]}"
 
-  discourse_reply_by_email_address = "${var.discourse_reply_by_email_address}"
-  discourse_pop3_polling_username  = "${var.discourse_pop3_polling_username}"
-  discourse_pop3_polling_password  = "${var.discourse_pop3_polling_password}"
-  discourse_pop3_polling_host      = "${var.discourse_pop3_polling_host}"
-  discourse_pop3_polling_port      = "${var.discourse_pop3_polling_port}"
+  discourse_reply_by_email_address = "${var.discourse["reply_by_email_address"]}"
+  discourse_pop3_polling_username  = "${var.discourse["pop3_polling_username"]}"
+  discourse_pop3_polling_password  = "${var.discourse["pop3_polling_password"]}"
+  discourse_pop3_polling_host      = "${var.discourse["pop3_polling_host"]}"
+  discourse_pop3_polling_port      = "${var.discourse["pop3_polling_port"]}"
+
+  discourse_ga_universal_tracking_code = "${var.discourse["ga_universal_tracking_code"]}"
 
   key_name        = "${aws_key_pair.ssh.key_name}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
@@ -201,45 +147,45 @@ module "dispute_tools" {
 
   sso_endpoint = "https://${aws_route53_record.discourse.fqdn}/session/sso_provider"
   site_url     = "https://${aws_route53_record.dispute_tools.fqdn}"
-  sso_secret   = "${var.sso_secret}"
-  jwt_secret   = "${var.tools_jwt_secret}"
-  cookie_name  = "${var.tools_cookie_name}${var.environment}__"
+  sso_secret   = "${var.discourse["sso_secret"]}"
+  jwt_secret   = "${var.dispute_tools["jwt_secret"]}"
+  cookie_name  = "${var.dispute_tools["cookie_name"]}${var.environment}__"
 
-  contact_email        = "${var.tools_contact_email}"
-  sender_email         = "${var.tools_sender_email}"
-  disputes_bcc_address = "${var.tools_disputes_bcc_address}"
+  contact_email        = "${var.dispute_tools["contact_email"]}"
+  sender_email         = "${var.dispute_tools["sender_email"]}"
+  disputes_bcc_address = "${var.dispute_tools["disputes_bcc_address"]}"
 
-  smtp_host = "${var.smtp_host}"
-  smtp_port = "${var.smtp_port}"
-  smtp_user = "${var.tools_smtp_user}"
-  smtp_pass = "${var.tools_smtp_pass}"
+  smtp_host = "${var.dispute_tools["smtp_host"]}"
+  smtp_port = "${var.dispute_tools["smtp_port"]}"
+  smtp_user = "${var.dispute_tools["smtp_user"]}"
+  smtp_pass = "${var.dispute_tools["smtp_pass"]}"
 
-  loggly_api_key = "${var.tools_loggly_api_key}"
+  loggly_api_key = "${var.dispute_tools["loggly_api_key"]}"
 
-  stripe_private     = "${var.tools_stripe_private}"
-  stripe_publishable = "${var.tools_stripe_publishable}"
+  stripe_private     = "${var.dispute_tools["stripe_private"]}"
+  stripe_publishable = "${var.dispute_tools["stripe_publishable"]}"
 
-  google_maps_api_key = "${var.tools_gmaps_api_key}"
+  google_maps_api_key = "${var.dispute_tools["gmaps_api_key"]}"
 
-  sentry_endpoint = "${var.tools_sentry_endpoint}"
+  sentry_endpoint = "${var.dispute_tools["sentry_endpoint"]}"
 
   db_connection_string = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/dispute_tools_${var.environment}"
-  db_pool_min          = "${var.tools_db_pool_min}"
-  db_pool_max          = "${var.tools_db_pool_max}"
+  db_pool_min          = "${var.dispute_tools["db_pool_min"]}"
+  db_pool_max          = "${var.dispute_tools["db_pool_max"]}"
 
-  image_name = "${var.tools_image_name}"
+  image_name = "${var.dispute_tools["image_name"]}"
 
-  discourse_base_url     = "${var.tools_discourse_base_url}"
-  discourse_api_key      = "${var.tools_discourse_api_key}"
-  discourse_api_username = "${var.tools_discourse_api_username}"
+  discourse_base_url     = "https://${aws_route53_record.discourse.fqdn}"
+  discourse_api_key      = "${var.dispute_tools["discourse_api_key"]}"
+  discourse_api_username = "${var.dispute_tools["discourse_api_username"]}"
 
-  doe_disclosure_representatives = "${var.tools_doe_disclosure_representatives}"
-  doe_disclosure_phones          = "${var.tools_doe_disclosure_phones}"
-  doe_disclosure_relationship    = "${var.tools_doe_disclosure_relationship}"
-  doe_disclosure_address         = "${var.tools_doe_disclosure_address}"
-  doe_disclosure_city            = "${var.tools_doe_disclosure_city}"
-  doe_disclosure_state           = "${var.tools_doe_disclosure_state}"
-  doe_disclosure_zip             = "${var.tools_doe_disclosure_zip}"
+  doe_disclosure_representatives = "${var.dispute_tools["doe_disclosure_representatives"]}"
+  doe_disclosure_phones          = "${var.dispute_tools["doe_disclosure_phones"]}"
+  doe_disclosure_relationship    = "${var.dispute_tools["doe_disclosure_relationship"]}"
+  doe_disclosure_address         = "${var.dispute_tools["doe_disclosure_address"]}"
+  doe_disclosure_city            = "${var.dispute_tools["doe_disclosure_city"]}"
+  doe_disclosure_state           = "${var.dispute_tools["doe_disclosure_state"]}"
+  doe_disclosure_zip             = "${var.dispute_tools["doe_disclosure_zip"]}"
 }
 
 // Route 53

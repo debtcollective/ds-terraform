@@ -1,7 +1,7 @@
 default_locale: en
 title: The Debt Collective
 site_description: A place to organize to fight debt
-contact_email: orlando@hashlabs.com
+contact_email: admin@debtcollective.org
 contact_url: https://debtcollective.org
 notification_email: noreply@debtcollective.org
 site_contact_username: system
@@ -26,7 +26,7 @@ suggested_topics: "5"
 limit_suggested_to_category: "false"
 suggested_topics_max_days_old: "365"
 track_external_right_clicks: "false"
-ga_universal_tracking_code: ""
+ga_universal_tracking_code: "${ga_universal_tracking_code}"
 ga_universal_domain_name: auto
 ga_universal_auto_link_domains: ""
 gtm_container_id: ""

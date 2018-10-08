@@ -88,6 +88,10 @@ variable "discourse_pop3_polling_port" {
   description = "pop3 port for the address used in reply by email"
 }
 
+variable "discourse_ga_universal_tracking_code" {
+  description = "Google analytics universal tracking code"
+}
+
 variable "key_name" {
   description = "SSH Key Pair to be assigned to the instance"
 }
@@ -170,6 +174,8 @@ data "template_file" "discourse_settings" {
     pop3_polling_port      = "${var.discourse_pop3_polling_port}"
     pop3_polling_username  = "${var.discourse_pop3_polling_username}"
     pop3_polling_password  = "${var.discourse_pop3_polling_password}"
+
+    ga_universal_tracking_code = "${var.discourse_ga_universal_tracking_code}"
   }
 }
 
