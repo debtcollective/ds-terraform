@@ -23,7 +23,7 @@ output: print_current_env
 	@terraform output
 
 destroy: print_current_env update
-	@terraform destroy -input=false -refresh=true -auto-approve
+	@terraform destroy -input=false -refresh=true
 
 print_current_env:
 	@echo "\033[1mYou current environment is $(ENVIRONMENT)\033[0m \n"

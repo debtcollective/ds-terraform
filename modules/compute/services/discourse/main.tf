@@ -282,10 +282,12 @@ resource "aws_instance" "discourse" {
       ,
 
       // Bootstrap Discourse
+      // Allow some time to services come up
       <<-BASH
         cd /opt/discourse
         sudo ./launcher bootstrap web
         sudo ./launcher start web
+        sleep 60
       BASH
       ,
     ]

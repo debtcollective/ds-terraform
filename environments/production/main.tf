@@ -16,68 +16,36 @@ variable "environment" {
 
 variable "db_username" {}
 variable "db_password" {}
-variable "tools_port" {}
-variable "smtp_host" {}
-variable "smtp_port" {}
-variable "sso_secret" {}
+variable "domain" {}
+
+// Cloudfront zone id is fixed
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html
+variable "cloudfront_zone_id" {
+  default = "Z2FDTNDATAQYW2"
+}
 
 # Dispute tools
-
-variable "tools_smtp_pass" {}
-variable "tools_smtp_user" {}
-variable "tools_gmaps_api_key" {}
-
-variable "tools_cookie_name" {
-  description = "Will have the environment appended to it to maintain environmental atomicity"
-  default     = "_dispute_tools__"
+variable "dispute_tools" {
+  default = {}
 }
-
-variable "tools_jwt_secret" {}
-variable "tools_loggly_api_key" {}
-variable "tools_stripe_private" {}
-variable "tools_stripe_publishable" {}
-variable "tools_db_pool_min" {}
-variable "tools_db_pool_max" {}
-
-variable "tools_sender_email" {
-  default = "admin@debtsyndicate.org"
-}
-
-variable "tools_disputes_bcc_address" {
-  default = "admin@debtsyndicate.org"
-}
-
-variable "tools_contact_email" {
-  default = "admin@debtsyndicate.org"
-}
-
-variable "tools_image_name" {
-  description = "Full repository URI reference to image name to deploy"
-  default     = "debtcollective/dispute-tools:latest"
-}
-
-variable "tools_discourse_api_username" {
-  default = "system"
-}
-
-variable "tools_discourse_base_url" {}
-variable "tools_discourse_api_key" {}
-
-variable "tools_doe_disclosure_representatives" {}
-variable "tools_doe_disclosure_phones" {}
-variable "tools_doe_disclosure_relationship" {}
-variable "tools_doe_disclosure_address" {}
-variable "tools_doe_disclosure_city" {}
-variable "tools_doe_disclosure_state" {}
-variable "tools_doe_disclosure_zip" {}
 
 # Discourse
-variable "discourse_smtp_user" {}
-
-variable "discourse_smtp_pass" {}
+variable "discourse" {
+  default = {}
+}
 
 # Mediawiki
 variable "mediawiki" {
+  default = {}
+}
+
+# Power Report
+variable "power_report" {
+  default = {}
+}
+
+# Landing
+variable "landing" {
   default = {}
 }
 
@@ -86,7 +54,7 @@ variable "mediawiki" {
  */
 terraform {
   backend "s3" {
-    bucket = "debtsyndicate-terraform"
+    bucket = "tdc-terraform"
     region = "us-east-1"
 
     // This is the state key, make sure you are using the right environment on line 12, otherwise you may overwrite other state
@@ -115,9 +83,9 @@ resource "aws_db_subnet_group" "postgres_sg" {
 // Postgres Database
 resource "aws_db_instance" "postgres" {
   identifier        = "postgres-${var.environment}"
-  allocated_storage = "20"
+  allocated_storage = "30"
   engine            = "postgres"
-  engine_version    = "9.6.6"
+  engine_version    = "10.5"
   instance_class    = "db.t2.micro"
   name              = "discourse_${var.environment}"
   username          = "${var.db_username}"
@@ -130,7 +98,7 @@ resource "aws_db_instance" "postgres" {
   vpc_security_group_ids = ["${module.vpc.rds_security_group_id}"]
 
   db_subnet_group_name = "${aws_db_subnet_group.postgres_sg.name}"
-  parameter_group_name = "default.postgres9.6"
+  parameter_group_name = "default.postgres10"
 
   multi_az                  = true
   storage_type              = "gp2"
@@ -151,48 +119,36 @@ module "ecs_role" {
 }
 
 // key_pair for Discourse cluster
-resource "aws_key_pair" "development" {
-  key_name   = "development-tdc"
-  public_key = ""
-
-  lifecycle {
-    prevent_destroy = true
-  }
+resource "aws_key_pair" "ssh" {
+  key_name   = "key_pair_${var.environment}"
+  public_key = "${file("key_pair_${var.environment}.pub")}"
 }
 
 module "discourse" {
   source      = "./modules/compute/services/discourse"
   environment = "${var.environment}"
 
-  discourse_hostname = "community.debtsyndicate.org"
+  discourse_hostname = "community.${var.domain}"
 
-  discourse_smtp_address   = "${var.smtp_host}"
-  discourse_smtp_user_name = "${var.discourse_smtp_user}"
-  discourse_smtp_password  = "${var.discourse_smtp_pass}"
+  discourse_smtp_address   = "${var.discourse["smtp_host"]}"
+  discourse_smtp_user_name = "${var.discourse["smtp_user"]}"
+  discourse_smtp_password  = "${var.discourse["smtp_pass"]}"
 
   discourse_db_host     = "${aws_db_instance.postgres.address}"
   discourse_db_name     = "discourse_${var.environment}"
   discourse_db_username = "${var.db_username}"
   discourse_db_password = "${var.db_password}"
-  discourse_sso_secret  = "${var.sso_secret}"
+  discourse_sso_secret  = "${var.discourse["sso_secret"]}"
 
-  key_name        = "${aws_key_pair.development.key_name}"
-  subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
-  security_groups = "${module.vpc.ec2_security_group_id}"
-}
+  discourse_reply_by_email_address = "${var.discourse["reply_by_email_address"]}"
+  discourse_pop3_polling_username  = "${var.discourse["pop3_polling_username"]}"
+  discourse_pop3_polling_password  = "${var.discourse["pop3_polling_password"]}"
+  discourse_pop3_polling_host      = "${var.discourse["pop3_polling_host"]}"
+  discourse_pop3_polling_port      = "${var.discourse["pop3_polling_port"]}"
 
-module "mediawiki" {
-  source      = "./modules/compute/services/mediawiki"
-  environment = "${var.environment}"
+  discourse_ga_universal_tracking_code = "${var.discourse["ga_universal_tracking_code"]}"
 
-  smtp_host = "${var.smtp_host}"
-  smtp_port = "${var.smtp_port}"
-  smtp_user = "${var.mediawiki["smtp_user"]}"
-  smtp_pass = "${var.mediawiki["smtp_pass"]}"
-
-  domain = "wiki.debtsyndicate.org"
-
-  key_name        = "${aws_key_pair.development.key_name}"
+  key_name        = "${aws_key_pair.ssh.key_name}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
   security_groups = "${module.vpc.ec2_security_group_id}"
 }
@@ -204,54 +160,92 @@ module "dispute_tools" {
   subnet_ids          = "${module.vpc.public_subnet_ids}"
   ec2_security_groups = "${module.vpc.ec2_security_group_id}"
   elb_security_groups = "${module.vpc.elb_security_group_id}"
-  key_name            = "development-tdc"
+  key_name            = "${aws_key_pair.ssh.key_name}"
 
-  sso_endpoint = "https://community.debtsyndicate.org/session/sso_provider"
-  site_url     = "https://tools.debtsyndicate.org"
-  sso_secret   = "${var.sso_secret}"
-  jwt_secret   = "${var.tools_jwt_secret}"
-  cookie_name  = "${var.tools_cookie_name}${var.environment}__"
+  sso_endpoint = "https://${aws_route53_record.discourse.fqdn}/session/sso_provider"
+  site_url     = "https://${aws_route53_record.dispute_tools.fqdn}"
+  sso_secret   = "${var.discourse["sso_secret"]}"
+  jwt_secret   = "${var.dispute_tools["jwt_secret"]}"
+  cookie_name  = "${var.dispute_tools["cookie_name"]}${var.environment}__"
 
-  contact_email        = "${var.tools_contact_email}"
-  sender_email         = "${var.tools_sender_email}"
-  disputes_bcc_address = "${var.tools_disputes_bcc_address}"
+  contact_email        = "${var.dispute_tools["contact_email"]}"
+  sender_email         = "${var.dispute_tools["sender_email"]}"
+  disputes_bcc_address = "${var.dispute_tools["disputes_bcc_address"]}"
 
-  smtp_host = "${var.smtp_host}"
-  smtp_port = "${var.smtp_port}"
-  smtp_user = "${var.tools_smtp_user}"
-  smtp_pass = "${var.tools_smtp_pass}"
+  ecs_instance_profile = "${module.ecs_role.instance_profile_id}"
+  ecs_instance_role    = "${module.ecs_role.instance_role_arn}"
 
-  loggly_api_key = "${var.tools_loggly_api_key}"
+  smtp_host = "${var.dispute_tools["smtp_host"]}"
+  smtp_port = "${var.dispute_tools["smtp_port"]}"
+  smtp_user = "${var.dispute_tools["smtp_user"]}"
+  smtp_pass = "${var.dispute_tools["smtp_pass"]}"
 
-  stripe_private     = "${var.tools_stripe_private}"
-  stripe_publishable = "${var.tools_stripe_publishable}"
+  loggly_api_key = "${var.dispute_tools["loggly_api_key"]}"
 
-  google_maps_api_key = "${var.tools_gmaps_api_key}"
+  stripe_private     = "${var.dispute_tools["stripe_private"]}"
+  stripe_publishable = "${var.dispute_tools["stripe_publishable"]}"
 
-  sentry_endpoint = ""
+  google_maps_api_key = "${var.dispute_tools["gmaps_api_key"]}"
+
+  sentry_endpoint = "${var.dispute_tools["sentry_endpoint"]}"
 
   db_connection_string = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/dispute_tools_${var.environment}"
-  db_pool_min          = "${var.tools_db_pool_min}"
-  db_pool_max          = "${var.tools_db_pool_max}"
+  db_pool_min          = "${var.dispute_tools["db_pool_min"]}"
+  db_pool_max          = "${var.dispute_tools["db_pool_max"]}"
 
-  image_name = "${var.tools_image_name}"
+  acm_certificate_domain = "*.${var.domain}"
 
-  discourse_base_url     = "${var.tools_discourse_base_url}"
-  discourse_api_key      = "${var.tools_discourse_api_key}"
-  discourse_api_username = "${var.tools_discourse_api_username}"
+  image_name = "${var.dispute_tools["image_name"]}"
 
-  doe_disclosure_representatives = "${var.tools_doe_disclosure_representatives}"
-  doe_disclosure_phones          = "${var.tools_doe_disclosure_phones}"
-  doe_disclosure_relationship    = "${var.tools_doe_disclosure_relationship}"
-  doe_disclosure_address         = "${var.tools_doe_disclosure_address}"
-  doe_disclosure_city            = "${var.tools_doe_disclosure_city}"
-  doe_disclosure_state           = "${var.tools_doe_disclosure_state}"
-  doe_disclosure_zip             = "${var.tools_doe_disclosure_zip}"
+  discourse_base_url     = "https://${aws_route53_record.discourse.fqdn}"
+  discourse_api_key      = "${var.dispute_tools["discourse_api_key"]}"
+  discourse_api_username = "${var.dispute_tools["discourse_api_username"]}"
+
+  doe_disclosure_representatives = "${var.dispute_tools["doe_disclosure_representatives"]}"
+  doe_disclosure_phones          = "${var.dispute_tools["doe_disclosure_phones"]}"
+  doe_disclosure_relationship    = "${var.dispute_tools["doe_disclosure_relationship"]}"
+  doe_disclosure_address         = "${var.dispute_tools["doe_disclosure_address"]}"
+  doe_disclosure_city            = "${var.dispute_tools["doe_disclosure_city"]}"
+  doe_disclosure_state           = "${var.dispute_tools["doe_disclosure_state"]}"
+  doe_disclosure_zip             = "${var.dispute_tools["doe_disclosure_zip"]}"
+}
+
+module "mediawiki" {
+  source      = "./modules/compute/services/mediawiki"
+  environment = "${var.environment}"
+
+  smtp_host = "${var.mediawiki["smtp_host"]}"
+  smtp_port = "${var.mediawiki["smtp_port"]}"
+  smtp_user = "${var.mediawiki["smtp_user"]}"
+  smtp_pass = "${var.mediawiki["smtp_pass"]}"
+
+  domain      = "wiki.${var.domain}"
+  admin_email = "${var.mediawiki["admin_email"]}"
+
+  key_name        = "${aws_key_pair.ssh.key_name}"
+  subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
+  security_groups = "${module.vpc.ec2_security_group_id}"
+}
+
+module "metabase" {
+  source      = "github.com/hashlabs/angostura/modules/aws/compute/services/metabase"
+  environment = "${var.environment}"
+
+  db_username = "${var.db_username}"
+  db_password = "${var.db_password}"
+  db_host     = "${aws_db_instance.postgres.address}"
+  db_port     = "${aws_db_instance.postgres.port}"
+  db_name     = "metabase_${var.environment}"
+
+  key_name                = "${aws_key_pair.ssh.key_name}"
+  iam_instance_profile_id = "${module.ecs_role.instance_profile_id}"
+  subnet_ids              = ["${module.vpc.public_subnet_ids}"]
+  security_groups         = ["${module.vpc.ec2_security_group_id}"]
 }
 
 // Route 53
 data "aws_route53_zone" "primary" {
-  name = "debtsyndicate.org."
+  name = "${var.domain}."
 }
 
 resource "aws_route53_record" "discourse" {
@@ -260,14 +254,6 @@ resource "aws_route53_record" "discourse" {
   type    = "A"
   ttl     = 300
   records = ["${module.discourse.public_ip}"]
-}
-
-resource "aws_route53_record" "mediawiki" {
-  zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "wiki"
-  type    = "A"
-  ttl     = 300
-  records = ["${module.mediawiki.public_ip}"]
 }
 
 resource "aws_route53_record" "dispute_tools" {
@@ -279,5 +265,40 @@ resource "aws_route53_record" "dispute_tools" {
     name                   = "${module.dispute_tools.lb_dns_name}"
     zone_id                = "${module.dispute_tools.lb_zone_id}"
     evaluate_target_health = true
+  }
+}
+
+// disabled until mediawiki module works
+// for now the old wiki instance is running
+resource "aws_route53_record" "mediawiki" {
+  count   = 0
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = "wiki"
+  type    = "A"
+  ttl     = 300
+  records = ["${module.mediawiki.public_ip}"]
+}
+
+resource "aws_route53_record" "landing" {
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = ""
+  type    = "A"
+
+  alias {
+    name                   = "${var.landing["cloudfront_domain_name"]}"
+    zone_id                = "${var.cloudfront_zone_id}"
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "power_report" {
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = "powerreport"
+  type    = "A"
+
+  alias {
+    name                   = "${var.power_report["cloudfront_domain_name"]}"
+    zone_id                = "${var.cloudfront_zone_id}"
+    evaluate_target_health = false
   }
 }
