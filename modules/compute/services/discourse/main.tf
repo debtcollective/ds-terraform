@@ -11,7 +11,7 @@ variable "discourse_hostname" {
 
 variable "discourse_developer_emails" {
   description = "Discourse developer emails for notifications"
-  default     = "orlando@hashlabs.com,alex@marcondesian.net,sberleant@gmail.com"
+  default     = "orlando@hashlabs.com"
 }
 
 // SMTP configuration
@@ -275,6 +275,12 @@ resource "aws_instance" "discourse" {
       BASH
       ,
 
+      // Add ubuntu to the docker user group
+      <<-BASH
+        sudo usermod -aG docker ubuntu
+      BASH
+      ,
+
       // Bootstrap Discourse
       <<-BASH
         cd /opt/discourse
@@ -282,17 +288,22 @@ resource "aws_instance" "discourse" {
         sudo ./launcher start web
       BASH
       ,
+    ]
 
-      // Add ubuntu to the docker user group
-      <<-BASH
-        sudo usermod -aG docker $${USER}
-      BASH
-      ,
+    connection {
+      user        = "ubuntu"
+      port        = "12345"
+      timeout     = "30m"
+      private_key = "${file("~/.ssh/id_rsa")}"
+    }
+  }
 
-      // Import config in running container
+  provisioner "remote-exec" {
+    inline = [
+      // Copy settings
       <<-BASH
-        docker cp /opt/discourse/settings.yml $(docker ps -q):/var/www/discourse
-        docker exec -w /var/www/discourse $(docker ps -q) bash -c $'rake site_settings:import < settings.yml'
+        docker cp /opt/discourse/settings.yml web:/var/www/discourse
+        docker exec -w /var/www/discourse web bash -c 'rake site_settings:import < settings.yml'
       BASH
       ,
     ]

@@ -111,7 +111,7 @@ module "discourse" {
   source      = "./modules/compute/services/discourse"
   environment = "${var.environment}"
 
-  discourse_hostname = "community.${var.environment}.debtsyndicate.org"
+  discourse_hostname = "${var.environment}.community.debtsyndicate.org"
 
   discourse_smtp_address   = "${var.discourse["smtp_host"]}"
   discourse_smtp_user_name = "${var.discourse["smtp_user"]}"
@@ -155,6 +155,9 @@ module "dispute_tools" {
   sender_email         = "${var.dispute_tools["sender_email"]}"
   disputes_bcc_address = "${var.dispute_tools["disputes_bcc_address"]}"
 
+  ecs_instance_profile = "${module.ecs_role.instance_profile_id}"
+  ecs_instance_role    = "${module.ecs_role.instance_role_arn}"
+
   smtp_host = "${var.dispute_tools["smtp_host"]}"
   smtp_port = "${var.dispute_tools["smtp_port"]}"
   smtp_user = "${var.dispute_tools["smtp_user"]}"
@@ -195,7 +198,7 @@ data "aws_route53_zone" "primary" {
 
 resource "aws_route53_record" "discourse" {
   zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "staging.community"
+  name    = "${var.environment}.community"
   type    = "A"
   ttl     = 300
   records = ["${module.discourse.public_ip}"]
@@ -203,7 +206,7 @@ resource "aws_route53_record" "discourse" {
 
 resource "aws_route53_record" "dispute_tools" {
   zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "staging"
+  name    = "${var.environment}"
   type    = "A"
 
   alias {
