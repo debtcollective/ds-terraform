@@ -27,6 +27,14 @@ variable "elb_security_groups" {
   description = "VPC Security Groups IDs to be used by the load balancer"
 }
 
+variable "ecs_instance_role" {
+  description = "iam role to be used for ecs"
+}
+
+variable "ecs_instance_profile" {
+  description = "iam profile to be used for ecs"
+}
+
 variable "sso_endpoint" {
   description = "SSO authentication endpoint"
 }
@@ -256,16 +264,12 @@ resource "aws_lb_listener" "dispute_tools_https" {
 }
 
 // ECS service and task
-data "aws_iam_role" "ecs_instance_role" {
-  name = "ecs-instance-role-${var.environment}"
-}
-
 resource "aws_ecs_service" "dispute_tools" {
   name            = "dispute_tools"
   cluster         = "${aws_ecs_cluster.dispute_tools.id}"
   task_definition = "${aws_ecs_task_definition.dispute_tools.arn}"
   desired_count   = 1
-  iam_role        = "${data.aws_iam_role.ecs_instance_role.arn}"
+  iam_role        = "${var.ecs_instance_role}"
 
   load_balancer {
     target_group_arn = "${aws_lb_target_group.dispute_tools.arn}"
@@ -278,18 +282,13 @@ resource "aws_ecs_cluster" "dispute_tools" {
   name = "dispute_tools_${var.environment}"
 }
 
-resource "aws_iam_instance_profile" "ecs_profile" {
-  name = "ecs-instance-profile-dt-${var.environment}"
-  role = "${data.aws_iam_role.ecs_instance_role.id}"
-}
-
 module "dispute_tools_lc" {
   source      = "../../../utils/launch_configuration"
   environment = "${var.environment}"
 
   cluster_name            = "${aws_ecs_cluster.dispute_tools.name}"
   key_name                = "${var.key_name}"
-  iam_instance_profile_id = "${aws_iam_instance_profile.ecs_profile.id}"
+  iam_instance_profile_id = "${var.ecs_instance_profile}"
   security_groups         = ["${var.ec2_security_groups}"]
   instance_type           = "${var.instance_type}"
 }
