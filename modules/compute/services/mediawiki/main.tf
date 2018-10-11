@@ -41,12 +41,11 @@ variable "smtp_pass" {
 
 variable "admin_email" {
   description = "Support and contact email"
-  default     = "admin@debtsyndicate.org"
 }
 
 variable "sitename" {
   description = "Sitename to be displayed in the website"
-  default     = "The Debt Syndicate"
+  default     = "The Debt Collective"
 }
 
 variable "domain" {
@@ -62,7 +61,7 @@ data "aws_ami" "mediawiki" {
 
   filter {
     name   = "name"
-    values = ["bitnami-mediawiki-1.30.0-0-r02-linux-ubuntu-16.04-x86_64-hvm-ebs-mp-b3ebc2b0-8c88-4edd-9551-8b8b5ec57943-ami-b6d8e8cc.4"]
+    values = ["bitnami-mediawiki-1.31.0-0-r35-linux-ubuntu-16.04-x86_64-hvm-ebs-mp-b3ebc2b0-8c88-4edd-9551-8b8b5ec57943-ami-08e957b9870af8d9f.4"]
   }
 
   filter {

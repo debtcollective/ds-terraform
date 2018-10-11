@@ -54,5 +54,5 @@ hooks:
     - exec:
         cd: $home
         cmd:
-          - apt-get update && apt-get -y install postgresql-client-9.6
-          - ln -s -f /usr/lib/postgresql/9.6/bin/pg_dump /usr/bin/pg_dump
+          - apt-get update && apt-get -y install postgresql-client-10
+          - ln -s -f /usr/lib/postgresql/10/bin/pg_dump /usr/bin/pg_dump
