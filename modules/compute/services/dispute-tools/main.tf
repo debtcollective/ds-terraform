@@ -176,6 +176,17 @@ variable "asg_max_size" {
   default     = 1
 }
 
+variable "recaptcha_site_key" {
+  description = "Google reCAPTCHA site key"
+}
+
+variable "recaptcha_secret_key" {
+  description = "Google reCAPTCHA secret key"
+}
+
+/*
+ * Resources
+ */
 // S3 Bucket and permissions
 resource "aws_s3_bucket" "disputes" {
   bucket        = "dispute-tools-uploads-${var.environment}"
@@ -365,11 +376,12 @@ data "template_file" "container_definitions" {
     discourse_api_username = "${var.discourse_api_username}"
     discourse_base_url     = "${var.discourse_base_url}"
 
-    sentry_endpoint = "${var.sentry_endpoint}"
-
+    sentry_endpoint          = "${var.sentry_endpoint}"
     static_assets_bucket_url = "${var.static_assets_bucket_url}"
+    log_group                = "${aws_ecs_cluster.dispute_tools.name}_lg"
 
-    log_group = "${aws_ecs_cluster.dispute_tools.name}_lg"
+    recaptcha_site_key   = "${var.recaptcha_site_key}"
+    recaptcha_secret_key = "${var.recaptcha_secret_key}"
   }
 }
 

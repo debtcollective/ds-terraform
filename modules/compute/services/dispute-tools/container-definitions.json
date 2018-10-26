@@ -170,6 +170,14 @@
       {
         "name": "DOE_DISCLOSURE_ZIP",
         "value": "${doe_disclosure_zip}"
+      },
+      {
+        "name": "RECAPTCHA_SITE_KEY",
+        "value": "${recaptcha_site_key}"
+      },
+      {
+        "name": "RECAPTCHA_SECRET_KEY",
+        "value": "${recaptcha_secret_key}"
       }
     ]
   }
