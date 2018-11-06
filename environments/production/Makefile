@@ -2,14 +2,19 @@ ENVIRONMENT=production
 REGION=us-east-1
 BUCKET=tdc-terraform
 
-init: ## Initializes the terraform remote state backend and pulls the correct environments state.
+## Initializes the terraform remote state backend and pulls the correct environments state.
+init:
 	@rm -rf .terraform
 	terraform init
+	$(MAKE) pull-secret-files
+
+## Gets any module updates
+update:
+	@terraform get -update=true
+
+pull-secret-files:
 	-aws s3 cp s3://$(BUCKET)/$(ENVIRONMENT)/terraform.tfvars . --quiet
 	-aws s3 cp s3://$(BUCKET)/$(ENVIRONMENT)/key_pair_$(ENVIRONMENT) . --quiet
-
-update: ## Gets any module updates
-	@terraform get -update=true
 
 apply: print_current_env update
 	terraform apply -input=false -auto-approve

@@ -156,10 +156,8 @@ module "discourse" {
 module "dispute_tools" {
   source              = "./modules/compute/services/dispute-tools"
   environment         = "${var.environment}"
-  vpc_id              = "${module.vpc.id}"
   subnet_ids          = "${module.vpc.public_subnet_ids}"
   ec2_security_groups = "${module.vpc.ec2_security_group_id}"
-  elb_security_groups = "${module.vpc.elb_security_group_id}"
   key_name            = "${aws_key_pair.ssh.key_name}"
 
   sso_endpoint = "https://${aws_route53_record.discourse.fqdn}/session/sso_provider"
@@ -174,6 +172,10 @@ module "dispute_tools" {
 
   ecs_instance_profile = "${module.ecs_role.instance_profile_id}"
   ecs_instance_role    = "${module.ecs_role.instance_role_arn}"
+
+  acm_certificate_domain = "*.${var.domain}"
+  elb_security_groups    = "${module.vpc.elb_security_group_id}"
+  vpc_id                 = "${module.vpc.id}"
 
   smtp_host = "${var.dispute_tools["smtp_host"]}"
   smtp_port = "${var.dispute_tools["smtp_port"]}"
@@ -193,8 +195,6 @@ module "dispute_tools" {
   db_pool_min          = "${var.dispute_tools["db_pool_min"]}"
   db_pool_max          = "${var.dispute_tools["db_pool_max"]}"
 
-  acm_certificate_domain = "*.${var.domain}"
-
   image_name = "${var.dispute_tools["image_name"]}"
 
   discourse_base_url     = "https://${aws_route53_record.discourse.fqdn}"
@@ -208,27 +208,13 @@ module "dispute_tools" {
   doe_disclosure_city            = "${var.dispute_tools["doe_disclosure_city"]}"
   doe_disclosure_state           = "${var.dispute_tools["doe_disclosure_state"]}"
   doe_disclosure_zip             = "${var.dispute_tools["doe_disclosure_zip"]}"
-}
 
-module "mediawiki" {
-  source      = "./modules/compute/services/mediawiki"
-  environment = "${var.environment}"
-
-  smtp_host = "${var.mediawiki["smtp_host"]}"
-  smtp_port = "${var.mediawiki["smtp_port"]}"
-  smtp_user = "${var.mediawiki["smtp_user"]}"
-  smtp_pass = "${var.mediawiki["smtp_pass"]}"
-
-  domain      = "wiki.${var.domain}"
-  admin_email = "${var.mediawiki["admin_email"]}"
-
-  key_name        = "${aws_key_pair.ssh.key_name}"
-  subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
-  security_groups = "${module.vpc.ec2_security_group_id}"
+  recaptcha_site_key   = "${var.dispute_tools["recaptcha_site_key"]}"
+  recaptcha_secret_key = "${var.dispute_tools["recaptcha_secret_key"]}"
 }
 
 module "metabase" {
-  source      = "github.com/hashlabs/angostura/modules/aws/compute/services/metabase"
+  source      = "./modules/compute/services/metabase"
   environment = "${var.environment}"
 
   db_username = "${var.db_username}"
@@ -236,6 +222,10 @@ module "metabase" {
   db_host     = "${aws_db_instance.postgres.address}"
   db_port     = "${aws_db_instance.postgres.port}"
   db_name     = "metabase_${var.environment}"
+
+  acm_certificate_domain = "*.${var.domain}"
+  elb_security_groups    = "${module.vpc.elb_security_group_id}"
+  vpc_id                 = "${module.vpc.id}"
 
   key_name                = "${aws_key_pair.ssh.key_name}"
   iam_instance_profile_id = "${module.ecs_role.instance_profile_id}"
@@ -268,17 +258,6 @@ resource "aws_route53_record" "dispute_tools" {
   }
 }
 
-// disabled until mediawiki module works
-// for now the old wiki instance is running
-resource "aws_route53_record" "mediawiki" {
-  count   = 0
-  zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "wiki"
-  type    = "A"
-  ttl     = 300
-  records = ["${module.mediawiki.public_ip}"]
-}
-
 resource "aws_route53_record" "landing" {
   zone_id = "${data.aws_route53_zone.primary.zone_id}"
   name    = ""
@@ -300,5 +279,17 @@ resource "aws_route53_record" "power_report" {
     name                   = "${var.power_report["cloudfront_domain_name"]}"
     zone_id                = "${var.cloudfront_zone_id}"
     evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "metabase" {
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = "metabase-new"
+  type    = "A"
+
+  alias {
+    name                   = "${module.metabase.dns_name}"
+    zone_id                = "${module.metabase.zone_id}"
+    evaluate_target_health = true
   }
 }
