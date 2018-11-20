@@ -284,7 +284,7 @@ resource "aws_route53_record" "power_report" {
 
 resource "aws_route53_record" "metabase" {
   zone_id = "${data.aws_route53_zone.primary.zone_id}"
-  name    = "metabase-new"
+  name    = "metabase"
   type    = "A"
 
   alias {

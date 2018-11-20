@@ -111,6 +111,11 @@ variable "elb_security_groups" {
   description = "VPC Security Groups IDs to be used by the load balancer"
 }
 
+variable "instance_type" {
+  description = "Instance type Launch Configuration"
+  default     = "t2.small"
+}
+
 /*
  * Resources
  */
@@ -212,6 +217,7 @@ module "metabase_lc" {
   key_name                = "${var.key_name}"
   iam_instance_profile_id = "${var.iam_instance_profile_id}"
   security_groups         = ["${var.security_groups}"]
+  instance_type           = "${var.instance_type}"
 }
 
 resource "aws_autoscaling_group" "metabase_asg" {
