@@ -48,6 +48,7 @@ hooks:
           - git clone https://github.com/debtcollective/discourse-debtcollective-theme.git
           - git clone https://github.com/debtcollective/discourse-debtcollective-migratepassword.git
           - git clone https://github.com/debtcollective/discourse-debtcollective-wizards.git
+          - git clone https://github.com/debtcollective/discourse-debtcollective-private-message-menu.git
           - git clone https://github.com/debtcollective/discourse-utilities.git
 
     # Make backups work with RDS
