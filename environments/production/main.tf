@@ -160,11 +160,12 @@ module "dispute_tools" {
   ec2_security_groups = "${module.vpc.ec2_security_group_id}"
   key_name            = "${aws_key_pair.ssh.key_name}"
 
-  sso_endpoint = "https://${aws_route53_record.discourse.fqdn}/session/sso_provider"
-  site_url     = "https://${aws_route53_record.dispute_tools.fqdn}"
-  sso_secret   = "${var.discourse["sso_secret"]}"
-  jwt_secret   = "${var.dispute_tools["jwt_secret"]}"
-  cookie_name  = "${var.dispute_tools["cookie_name"]}${var.environment}__"
+  sso_endpoint     = "https://${aws_route53_record.discourse.fqdn}/session/sso_provider"
+  site_url         = "https://${aws_route53_record.dispute_tools.fqdn}"
+  sso_secret       = "${var.discourse["sso_secret"]}"
+  jwt_secret       = "${var.dispute_tools["jwt_secret"]}"
+  cookie_name      = "${var.dispute_tools["cookie_name"]}${var.environment}__"
+  landing_page_url = "https://${aws_route53_record.landing.fqdn}"
 
   contact_email        = "${var.dispute_tools["contact_email"]}"
   sender_email         = "${var.dispute_tools["sender_email"]}"

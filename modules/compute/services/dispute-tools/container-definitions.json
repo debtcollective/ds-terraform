@@ -48,6 +48,10 @@
         "value": "${site_url}"
       },
       {
+        "name": "LANDING_PAGE_URL",
+        "value": "${landing_page_url}"
+      },
+      {
         "name": "EMAIL_CONTACT",
         "value": "${contact_email}"
       },

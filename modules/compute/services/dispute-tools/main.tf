@@ -138,6 +138,10 @@ variable "site_url" {
   description = "URL where the application is hosted"
 }
 
+variable "landing_page_url" {
+  description = "URL where the landing page is hosted"
+}
+
 variable "sentry_endpoint" {
   description = "Sentry DNS for error reporting"
 }
@@ -325,14 +329,15 @@ data "template_file" "container_definitions" {
   template = "${file("${path.module}/container-definitions.json")}"
 
   vars {
-    container_name = "dispute_tools_${var.environment}"
-    environment    = "${var.environment}"
-    image_name     = "${var.image_name}"
-    sso_endpoint   = "${var.sso_endpoint}"
-    sso_secret     = "${var.sso_secret}"
-    jwt_secret     = "${var.jwt_secret}"
-    cookie_name    = "${var.cookie_name}"
-    site_url       = "${var.site_url}"
+    container_name   = "dispute_tools_${var.environment}"
+    environment      = "${var.environment}"
+    image_name       = "${var.image_name}"
+    sso_endpoint     = "${var.sso_endpoint}"
+    sso_secret       = "${var.sso_secret}"
+    jwt_secret       = "${var.jwt_secret}"
+    cookie_name      = "${var.cookie_name}"
+    site_url         = "${var.site_url}"
+    landing_page_url = "${var.landing_page_url}"
 
     doe_disclosure_representatives = "${var.doe_disclosure_representatives}"
     doe_disclosure_phones          = "${var.doe_disclosure_phones}"
