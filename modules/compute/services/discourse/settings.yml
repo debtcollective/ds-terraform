@@ -116,7 +116,7 @@ email_token_valid_hours: "48"
 purge_unactivated_users_grace_period_days: "30"
 public_user_custom_fields: geo_location
 staff_user_custom_fields: ""
-enable_user_directory: "true"
+enable_user_directory: "false"
 allow_anonymous_posting: "false"
 anonymous_posting_min_trust_level: "1"
 anonymous_account_duration_minutes: "10080"
