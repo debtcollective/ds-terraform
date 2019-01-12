@@ -182,6 +182,10 @@
       {
         "name": "RECAPTCHA_SECRET_KEY",
         "value": "${recaptcha_secret_key}"
+      },
+      {
+        "name": "GOOGLE_ANALYTICS_UA",
+        "value": "${google_analytics_ua}"
       }
     ]
   }

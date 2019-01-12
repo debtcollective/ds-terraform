@@ -188,6 +188,11 @@ variable "recaptcha_secret_key" {
   description = "Google reCAPTCHA secret key"
 }
 
+variable "google_analytics_ua" {
+  description = "Google Analytics UA code"
+  default     = ""
+}
+
 /*
  * Resources
  */
@@ -387,6 +392,8 @@ data "template_file" "container_definitions" {
 
     recaptcha_site_key   = "${var.recaptcha_site_key}"
     recaptcha_secret_key = "${var.recaptcha_secret_key}"
+
+    google_analytics_ua = "${var.google_analytics_ua}"
   }
 }
 

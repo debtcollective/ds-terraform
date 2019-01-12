@@ -212,6 +212,8 @@ module "dispute_tools" {
 
   recaptcha_site_key   = "${var.dispute_tools["recaptcha_site_key"]}"
   recaptcha_secret_key = "${var.dispute_tools["recaptcha_secret_key"]}"
+
+  google_analytics_ua = "${var.dispute_tools["google_analytics_ua"]}"
 }
 
 module "metabase" {
