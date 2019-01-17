@@ -188,8 +188,6 @@ resource "aws_s3_bucket" "uploads" {
   }
 }
 
-<<<<<<< HEAD
-=======
 // Uploads bucket Cloudfront CDN
 locals {
   s3_origin_id = "community${title(var.environment)}"
@@ -275,7 +273,6 @@ resource "aws_cloudfront_distribution" "cdn" {
   }
 }
 
->>>>>>> 368883d7f50258219485f95a621773185bb3825b
 resource "aws_s3_bucket" "backups" {
   bucket = "community-backups-${var.environment}"
 
@@ -298,18 +295,9 @@ data "aws_iam_policy_document" "discourse" {
     actions = [
       "s3:List*",
       "s3:Get*",
-<<<<<<< HEAD
-      "s3:AbortMultipartUpload",
-      "s3:DeleteObject",
-      "s3:PutObject",
-      "s3:PutObjectAcl",
-      "s3:PutObjectVersionAcl",
-      "s3:PutLifecycleConfiguration",
-=======
       "s3:Put*",
       "s3:AbortMultipartUpload",
       "s3:DeleteObject",
->>>>>>> 368883d7f50258219485f95a621773185bb3825b
       "s3:CreateBucket",
     ]
 
@@ -361,10 +349,7 @@ data "template_file" "discourse_settings" {
     s3_access_key_id     = "${aws_iam_access_key.discourse.id}"
     s3_secret_access_key = "${aws_iam_access_key.discourse.secret}"
     s3_upload_bucket     = "${aws_s3_bucket.uploads.id}"
-<<<<<<< HEAD
-=======
     s3_cdn_url           = "https://${aws_route53_record.cdn.fqdn}"
->>>>>>> 368883d7f50258219485f95a621773185bb3825b
 
     backup_frequency = "3"
     s3_backup_bucket = "${aws_s3_bucket.backups.id}"
