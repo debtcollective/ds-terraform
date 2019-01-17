@@ -167,6 +167,12 @@ data "template_file" "discourse" {
     discourse_developer_emails          = "${var.discourse_developer_emails}"
     discourse_hostname                  = "${var.discourse_hostname}"
     discourse_letsencrypt_account_email = "${var.discourse_letsencrypt_account_email}"
+
+    discourse_s3_region            = "${aws_s3_bucket.uploads.region}"
+    discourse_s3_access_key_id     = "${aws_iam_access_key.discourse.id}"
+    discourse_s3_secret_access_key = "${aws_iam_access_key.discourse.secret}"
+    discourse_s3_bucket            = "${aws_s3_bucket.uploads.id}"
+    discourse_s3_cdn_url           = "https://${aws_route53_record.cdn.fqdn}"
   }
 }
 
@@ -289,12 +295,9 @@ data "aws_iam_policy_document" "discourse" {
     actions = [
       "s3:List*",
       "s3:Get*",
+      "s3:Put*",
       "s3:AbortMultipartUpload",
       "s3:DeleteObject",
-      "s3:PutObject",
-      "s3:PutObjectAcl",
-      "s3:PutObjectVersionAcl",
-      "s3:PutLifecycleConfiguration",
       "s3:CreateBucket",
     ]
 

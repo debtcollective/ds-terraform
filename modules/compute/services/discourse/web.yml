@@ -11,6 +11,12 @@ expose:
 
 env:
   LANG: en_US.UTF-8
+  USE_DB_S3_CONFIG: true
+  DISCOURSE_S3_REGION: "${discourse_s3_region}"
+  DISCOURSE_S3_ACCESS_KEY_ID: "${discourse_s3_access_key_id}"
+  DISCOURSE_S3_SECRET_ACCESS_KEY: "${discourse_s3_secret_access_key}"
+  DISCOURSE_S3_BUCKET: "${discourse_s3_bucket}"
+  DISCOURSE_S3_CDN_URL: "${discourse_s3_cdn_url}"
   DISCOURSE_SMTP_ADDRESS: "${discourse_smtp_address}"
   DISCOURSE_SMTP_PORT: "${discourse_smtp_port}"
   DISCOURSE_SMTP_USER_NAME: "${discourse_smtp_username}"
@@ -57,3 +63,9 @@ hooks:
         cmd:
           - apt-get update && apt-get -y install postgresql-client-10
           - ln -s -f /usr/lib/postgresql/10/bin/pg_dump /usr/bin/pg_dump
+
+  after_bundle_exec:
+    - exec:
+        cd: $home
+        cmd:
+          - bundle exec rake s3:upload_assets
