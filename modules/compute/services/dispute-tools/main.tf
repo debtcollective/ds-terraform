@@ -158,7 +158,7 @@ variable "log_retention_in_days" {
 
 variable "acm_certificate_domain" {
   description = "ACM certificate domain name to be used for SSL"
-  default     = "*.debtsyndicate.org"
+  default     = "*.debtcollective.org"
 }
 
 variable "key_name" {
