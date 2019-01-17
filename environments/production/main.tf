@@ -128,6 +128,8 @@ module "discourse" {
   source      = "./modules/compute/services/discourse"
   environment = "${var.environment}"
 
+  domain = "${var.domain}"
+
   discourse_hostname = "community.${var.domain}"
 
   discourse_smtp_address   = "${var.discourse["smtp_host"]}"
@@ -147,6 +149,8 @@ module "discourse" {
   discourse_pop3_polling_port      = "${var.discourse["pop3_polling_port"]}"
 
   discourse_ga_universal_tracking_code = "${var.discourse["ga_universal_tracking_code"]}"
+
+  acm_certificate_domain = "*.${var.domain}"
 
   key_name        = "${aws_key_pair.ssh.key_name}"
   subnet_id       = "${element(module.vpc.public_subnet_ids, 0)}"
