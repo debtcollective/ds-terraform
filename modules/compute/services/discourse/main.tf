@@ -163,6 +163,80 @@ data "template_file" "discourse" {
   }
 }
 
+// S3 buckets and permissions
+resource "aws_s3_bucket" "uploads" {
+  bucket = "community-uploads-${var.environment}"
+  acl    = "public-read"
+
+  tags {
+    Terraform   = true
+    Name        = "community-uploads-${var.environment}"
+    Environment = "${var.environment}"
+  }
+}
+
+resource "aws_s3_bucket" "backups" {
+  bucket = "community-backups-${var.environment}"
+
+  tags {
+    Terraform   = true
+    Name        = "community-backups-${var.environment}"
+    Environment = "${var.environment}"
+  }
+}
+
+// User for Discourse s3 uploads
+resource "aws_iam_user" "discourse" {
+  name = "community-${var.environment}"
+}
+
+data "aws_iam_policy_document" "discourse" {
+  statement {
+    sid = "1"
+
+    actions = [
+      "s3:List*",
+      "s3:Get*",
+      "s3:AbortMultipartUpload",
+      "s3:DeleteObject",
+      "s3:PutObject",
+      "s3:PutObjectAcl",
+      "s3:PutObjectVersionAcl",
+      "s3:PutLifecycleConfiguration",
+      "s3:CreateBucket",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.uploads.arn}",
+      "${aws_s3_bucket.uploads.arn}/*",
+      "${aws_s3_bucket.backups.arn}",
+      "${aws_s3_bucket.backups.arn}/*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "s3:ListAllMyBuckets",
+      "s3:HeadBucket",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+}
+
+resource "aws_iam_user_policy" "user_policy" {
+  name_prefix = "CommunityPolicy${title(var.environment)}"
+  user        = "${aws_iam_user.discourse.name}"
+
+  policy = "${data.aws_iam_policy_document.discourse.json}"
+}
+
+resource "aws_iam_access_key" "discourse" {
+  user = "${aws_iam_user.discourse.name}"
+}
+
 data "template_file" "discourse_settings" {
   template = "${file("${path.module}/settings.yml")}"
 
@@ -176,6 +250,13 @@ data "template_file" "discourse_settings" {
     pop3_polling_password  = "${var.discourse_pop3_polling_password}"
 
     ga_universal_tracking_code = "${var.discourse_ga_universal_tracking_code}"
+
+    s3_access_key_id     = "${aws_iam_access_key.discourse.id}"
+    s3_secret_access_key = "${aws_iam_access_key.discourse.secret}"
+    s3_upload_bucket     = "${aws_s3_bucket.uploads.id}"
+
+    backup_frequency = "3"
+    s3_backup_bucket = "${aws_s3_bucket.backups.id}"
   }
 }
 
