@@ -114,6 +114,13 @@ variable "volume_size" {
   default     = 25
 }
 
+variable "acm_certificate_domain" {
+  description = "ACM certificate domain name to be used for CDN SSL"
+  default     = "*.debtcollective.org"
+}
+
+variable "domain" {}
+
 /*
  * Resources
  */
@@ -160,6 +167,12 @@ data "template_file" "discourse" {
     discourse_developer_emails          = "${var.discourse_developer_emails}"
     discourse_hostname                  = "${var.discourse_hostname}"
     discourse_letsencrypt_account_email = "${var.discourse_letsencrypt_account_email}"
+
+    discourse_s3_region            = "${aws_s3_bucket.uploads.region}"
+    discourse_s3_access_key_id     = "${aws_iam_access_key.discourse.id}"
+    discourse_s3_secret_access_key = "${aws_iam_access_key.discourse.secret}"
+    discourse_s3_bucket            = "${aws_s3_bucket.uploads.id}"
+    discourse_s3_cdn_url           = "https://${aws_route53_record.cdn.fqdn}"
   }
 }
 
@@ -175,6 +188,94 @@ resource "aws_s3_bucket" "uploads" {
   }
 }
 
+<<<<<<< HEAD
+=======
+// Uploads bucket Cloudfront CDN
+locals {
+  s3_origin_id = "community${title(var.environment)}"
+  cdn_alias    = "community-cdn-${substr(var.environment, 0, 4)}"
+}
+
+data "aws_acm_certificate" "domain" {
+  domain   = "${var.acm_certificate_domain}"
+  statuses = ["ISSUED"]
+}
+
+data "aws_route53_zone" "primary" {
+  name = "${var.domain}."
+}
+
+resource "aws_route53_record" "cdn" {
+  zone_id = "${data.aws_route53_zone.primary.zone_id}"
+  name    = "${local.cdn_alias}"
+  type    = "A"
+
+  alias {
+    name                   = "${aws_cloudfront_distribution.cdn.domain_name}"
+    zone_id                = "${aws_cloudfront_distribution.cdn.hosted_zone_id}"
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_cloudfront_origin_access_identity" "uploads" {
+  comment = "Community uploads bucket origin"
+}
+
+resource "aws_cloudfront_distribution" "cdn" {
+  origin {
+    domain_name = "${aws_s3_bucket.uploads.bucket_regional_domain_name}"
+    origin_id   = "${local.s3_origin_id}"
+
+    s3_origin_config {
+      origin_access_identity = "${aws_cloudfront_origin_access_identity.uploads.cloudfront_access_identity_path}"
+    }
+  }
+
+  enabled         = true
+  is_ipv6_enabled = true
+
+  aliases = ["${local.cdn_alias}.${var.domain}"]
+
+  default_cache_behavior {
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "${local.s3_origin_id}"
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    viewer_protocol_policy = "allow-all"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  tags = {
+    Terraform   = true
+    Name        = "${local.s3_origin_id}"
+    Environment = "${var.environment}"
+  }
+
+  // We are using a custom alias
+  // We need to provide a SSL certificate for that alias
+  viewer_certificate {
+    ssl_support_method  = "sni-only"
+    acm_certificate_arn = "${data.aws_acm_certificate.domain.arn}"
+  }
+}
+
+>>>>>>> 368883d7f50258219485f95a621773185bb3825b
 resource "aws_s3_bucket" "backups" {
   bucket = "community-backups-${var.environment}"
 
@@ -197,12 +298,18 @@ data "aws_iam_policy_document" "discourse" {
     actions = [
       "s3:List*",
       "s3:Get*",
+<<<<<<< HEAD
       "s3:AbortMultipartUpload",
       "s3:DeleteObject",
       "s3:PutObject",
       "s3:PutObjectAcl",
       "s3:PutObjectVersionAcl",
       "s3:PutLifecycleConfiguration",
+=======
+      "s3:Put*",
+      "s3:AbortMultipartUpload",
+      "s3:DeleteObject",
+>>>>>>> 368883d7f50258219485f95a621773185bb3825b
       "s3:CreateBucket",
     ]
 
@@ -254,6 +361,10 @@ data "template_file" "discourse_settings" {
     s3_access_key_id     = "${aws_iam_access_key.discourse.id}"
     s3_secret_access_key = "${aws_iam_access_key.discourse.secret}"
     s3_upload_bucket     = "${aws_s3_bucket.uploads.id}"
+<<<<<<< HEAD
+=======
+    s3_cdn_url           = "https://${aws_route53_record.cdn.fqdn}"
+>>>>>>> 368883d7f50258219485f95a621773185bb3825b
 
     backup_frequency = "3"
     s3_backup_bucket = "${aws_s3_bucket.backups.id}"
