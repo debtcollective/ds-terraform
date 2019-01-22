@@ -1,3 +1,4 @@
+---
 title: The Debt Collective
 site_description: A place to organize to fight debt
 contact_email: admin@debtcollective.org
@@ -60,14 +61,13 @@ tagging_enabled: "true"
 disable_discourse_narrative_bot_welcome_post: "true"
 discourse_narrative_bot_welcome_post_delay: "10"
 debtcollective_header_links:
-  Dispute Your Debt, Dispute Your Debt, https://tools.debtcollective.org,
-  vdo, self, remove|The Power Report, The Power Report, https://powerreport.debtcollective.org,
-  vdo, self, remove|Wiki, Community Wiki, http://wiki.debtcollective.org, vdo, self,
-  remove
+  Dispute Your Debt, Dispute Your Debt, https://tools.debtcollective.org, vdo, self, remove|
+  The Power Report, The Power Report, https://powerreport.debtcollective.org, vdo, self, remove|
+  Donate, Donate, https://tools.debtcollective.org/donate, vdo, self, remove
 debtcollective_solidarity_message_author: Laura_Hanna
 private_message_menu: like-count|like|flag|edit|bookmark|delete|admin|reply
 assign_enabled: "true"
-location_input_fields_enabled: "true"
+location_input_fields_enabled: "false"
 events_enabled: "true"
 events_agenda_enabled: "true"
 events_calendar_enabled: "true"
