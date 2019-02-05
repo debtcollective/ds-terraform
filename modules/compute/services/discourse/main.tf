@@ -229,8 +229,9 @@ resource "aws_cloudfront_distribution" "cdn" {
     }
   }
 
-  enabled         = true
-  is_ipv6_enabled = true
+  enabled             = true
+  is_ipv6_enabled     = true
+  default_root_object = "index.html"
 
   aliases = ["${local.cdn_alias}.${var.domain}"]
 
