@@ -22,7 +22,7 @@ apply: print_current_env update
 	aws s3 cp key_pair_$(ENVIRONMENT) s3://$(BUCKET)/$(ENVIRONMENT)/key_pair_$(ENVIRONMENT)
 
 plan: print_current_env update
-	terraform plan -input=false -refresh=true -module-depth=-1
+	terraform plan -input=false -refresh=true
 
 output: print_current_env
 	terraform output

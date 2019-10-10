@@ -146,6 +146,17 @@ data "template_file" "user_data" {
   template = "${file("${path.module}/user_data.sh")}"
 }
 
+// Generate sso_jwt_secret
+resource "random_string" "discourse_sso_jwt_secret" {
+  length = 64
+}
+
+resource "aws_ssm_parameter" "discourse_sso_jwt_secret" {
+  name  = "/${var.environment}/services/discourse/sso_jwt_secret"
+  type  = "SecureString"
+  value = random_string.discourse_sso_jwt_secret.result
+}
+
 // Discourse configuration
 data "template_file" "discourse" {
   template = "${file("${path.module}/web.yml")}"
@@ -167,6 +178,9 @@ data "template_file" "discourse" {
     discourse_developer_emails          = "${var.discourse_developer_emails}"
     discourse_hostname                  = "${var.discourse_hostname}"
     discourse_letsencrypt_account_email = "${var.discourse_letsencrypt_account_email}"
+    discourse_sso_jwt_secret            = "${aws_ssm_parameter.discourse_sso_jwt_secret.value}"
+    discourse_sso_cookie_name           = "tdc_auth_${var.environment}"
+    discourse_sso_cookie_domain         = ".${var.domain}"
 
     discourse_s3_region            = "${aws_s3_bucket.uploads.region}"
     discourse_s3_access_key_id     = "${aws_iam_access_key.discourse.id}"

@@ -18,6 +18,9 @@ env:
   DISCOURSE_SMTP_PASSWORD: "${discourse_smtp_password}"
   DISCOURSE_SMTP_PORT: "${discourse_smtp_port}"
   DISCOURSE_SMTP_USER_NAME: "${discourse_smtp_username}"
+  DISCOURSE_SSO_COOKIE_DOMAIN: "${discourse_sso_cookie_domain}"
+  DISCOURSE_SSO_COOKIE_NAME: "${discourse_sso_cookie_name}"
+  DISCOURSE_SSO_JWT_SECRET: "${discourse_sso_jwt_secret}"
   LANG: en_US.UTF-8
   LETSENCRYPT_ACCOUNT_EMAIL: "${discourse_letsencrypt_account_email}"
   USE_DB_S3_CONFIG: true
