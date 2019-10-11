@@ -4,7 +4,7 @@ This is the terraform recipes we use to generate our production environment. Thi
 
 ## Installation
 
-We need to run a specific Terraform version, this repo is compatible with v0.11.14. To install it use [tfenv](https://github.com/tfutils/tfenv)
+This repo is compatible with Terraform v0.11.14. To install this specific version use [tfenv](https://github.com/tfutils/tfenv)
 
 ```bash
 brew install tfenv
