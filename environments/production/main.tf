@@ -2,7 +2,8 @@
  * Config
  */
 provider "aws" {
-  region = "us-east-1"
+  region  = "us-east-1"
+  version = "~> 1.0"
 }
 
 /*
@@ -53,6 +54,8 @@ variable "landing" {
  * Remote State
  */
 terraform {
+  required_version = "0.11.14"
+
   backend "s3" {
     bucket = "tdc-terraform"
     region = "us-east-1"
@@ -85,7 +88,7 @@ resource "aws_db_instance" "postgres" {
   identifier        = "postgres-${var.environment}"
   allocated_storage = "30"
   engine            = "postgres"
-  engine_version    = "10.5"
+  engine_version    = "10.6"
   instance_class    = "db.t2.micro"
   name              = "discourse_${var.environment}"
   username          = "${var.db_username}"

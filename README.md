@@ -1,14 +1,14 @@
 # debtcollective terraform
 
-This is the terraform recipes we use to generate our production
-environment.
+This is the terraform recipes we use to generate our production environment. This is in phase out mode and will be replaced by [infra](https://github.com/debtcollective/infra).
 
 ## Installation
 
-First you will need to install [Terraform](https://www.terraform.io/intro/getting-started/install.html). If you are on OSX use [Homebrew](https://brew.sh/) to do this. If you don't have homebrew installed, [install it first](https://brew.sh/)
+We need to run a specific Terraform version, this repo is compatible with v0.11.14. To install it use [tfenv](https://github.com/tfutils/tfenv)
 
 ```bash
-brew install terraform
+brew install tfenv
+tfenv install 0.11.14
 ```
 
 Then follow these steps to init your environment
