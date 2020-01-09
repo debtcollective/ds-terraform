@@ -92,6 +92,10 @@ variable "discourse_ga_universal_tracking_code" {
   description = "Google analytics universal tracking code"
 }
 
+variable "discourse_maxmind_license_key" {
+  description = "Maxmind geo2ip database license key"
+}
+
 variable "key_name" {
   description = "SSH Key Pair to be assigned to the instance"
 }
@@ -177,6 +181,7 @@ data "template_file" "discourse" {
 
     discourse_developer_emails          = "${var.discourse_developer_emails}"
     discourse_hostname                  = "${var.discourse_hostname}"
+    discourse_maxmind_license_key       = "${var.discourse_maxmind_license_key}"
     discourse_letsencrypt_account_email = "${var.discourse_letsencrypt_account_email}"
     discourse_sso_jwt_secret            = "${aws_ssm_parameter.discourse_sso_jwt_secret.value}"
     discourse_sso_cookie_name           = "tdc_auth_${var.environment}"
