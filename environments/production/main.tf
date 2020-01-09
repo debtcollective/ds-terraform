@@ -152,6 +152,7 @@ module "discourse" {
   discourse_pop3_polling_port      = "${var.discourse["pop3_polling_port"]}"
 
   discourse_ga_universal_tracking_code = "${var.discourse["ga_universal_tracking_code"]}"
+  discourse_maxmind_license_key        = "${var.discourse["maxmind_license_key"]}"
 
   acm_certificate_domain = "*.${var.domain}"
 
